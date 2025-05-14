@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exhibition Comments System</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .links {
+            text-align: center;
+        }
+        h1 {
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+        }
+        a {
+            display: block;
+            color: #fff;
+            text-decoration: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border: 1px solid #fff;
+            transition: all 0.3s;
+        }
+        a:hover {
+            background: #fff;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="links">
+        <h1>EXHIBITION COMMENTS</h1>
+        <a href="comment.html">VISITOR COMMENTS</a>
+        <a href="display.html">DISPLAY (FOR IPAD)</a>
+        <a href="qr.html">GENERATE QR CODE</a>
+    </div>
+</body>
+</html>
