@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>What is happening in this house, I asked</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 60px 40px 40px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #000;
+            padding: 40px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+
+        .comments-wrapper {
+            margin-top: 120px;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        .comment {
+            margin-bottom: 60px;
+            padding-bottom: 60px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comment-author {
+            font-size: 18px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .comment-text {
+            font-size: 32px;
+            line-height: 1.4;
+            font-weight: 300;
+            margin-bottom: 16px;
+        }
+
+        .comment-time {
+            font-size: 14px;
+            opacity: 0.4;
+            letter-spacing: 1px;
+        }
+
+        .empty {
+            text-align: center;
+            font-size: 24px;
+            opacity: 0.5;
+            padding: 200px 40px;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .auto-scroll-indicator {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .auto-scroll-indicator:hover {
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+        }
+
+        .auto-scroll-indicator.paused {
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 200px 0;
+            font-size: 24px;
+            opacity: 0.5;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+
+        /* iPad specific adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .comment-text {
+                font-size: 24px;
+            }
+            
+            .comments-wrapper {
+                margin-top: 100px;
+            }
+            
+            .stats {
+                bottom: 20px;
+                left: 20px;
+                font-size: 14px;
+                padding: 15px 20px;
+            }
+            
+            .auto-scroll-indicator {
+                bottom: 20px;
+                right: 20px;
+                font-size: 12px;
+                padding: 12px 20px;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>What is happening in this house, I asked</h1>
+    </div>
+
+    <div class="container">
+        <div class="comments-wrapper" id="commentsWrapper">
+            <div class="loading" id="loading">Loading comments</div>
+        </div>
+    </div>
+
+    <div class="stats" id="stats">
+        <span id="commentCount">0</span> COMMENTS
+    </div>
+
+    <div class="auto-scroll-indicator" id="scrollIndicator">
+        AUTO SCROLL: ON
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase configuration - Replace with your own config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const commentsCollection = db.collection('comments');
+        
+        // Auto-scroll settings
+        let autoScroll = true;
+        let scrollSpeed = 1;
+        let scrollInterval;
+        let lastScrollTime = Date.now();
+        
+        // Format time
+        function formatTime(timestamp) {
+            const now = new Date();
+            const commentDate = timestamp.toDate();
+            const diffMs = now - commentDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            
+            return commentDate.toLocaleDateString();
+        }
+        
+        // Render comments
+        function renderComments(comments) {
+            const commentsWrapper = document.getElementById('commentsWrapper');
+            const loadingElement = document.getElementById('loading');
+            
+            loadingElement.style.display = 'none';
+            
+            if (comments.length === 0) {
+                commentsWrapper.innerHTML = '<div class="empty">WAITING FOR THE FIRST COMMENT</div>';
+                return;
+            }
+            
+            // Update stats
+            document.getElementById('commentCount').textContent = comments.length;
+            
+            let html = '';
+            comments.forEach((comment, index) => {
+                html += `
+                    <div class="comment" style="animation-delay: ${index * 0.1}s">
+                        <div class="comment-author">${comment.name}</div>
+                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-time">${formatTime(comment.timestamp)}</div>
+                    </div>
+                `;
+            });
+            
+            commentsWrapper.innerHTML = html;
+        }
+        
+        // Load comments from Firebase with real-time updates
+        function setupRealTimeComments() {
+            commentsCollection
+                .where('status', '==', 'approved')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snapshot => {
+                    const comments = [];
+                    snapshot.forEach(doc => {
+                        comments.push(doc.data());
+                    });
+                    renderComments(comments);
+                }, error => {
+                    console.error('Error in real-time updates:', error);
+                    document.getElementById('loading').textContent = 'Error loading comments';
+                });
+        }
+        
+        // Auto-scroll functionality
+        function startAutoScroll() {
+            if (!autoScroll) return;
+            
+            scrollInterval = setInterval(() => {
+                if (Date.now() - lastScrollTime > 3000) {
+                    window.scrollBy(0, scrollSpeed);
+                    
+                    // Reset to top when reaching bottom
+                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                        setTimeout(() => {
+                            window.scrollTo({
+                                top: 0,
+                                behavior: 'smooth'
+                            });
+                        }, 3000);
+                    }
+                }
+            }, 50);
+        }
+        
+        function stopAutoScroll() {
+            clearInterval(scrollInterval);
+        }
+        
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const indicator = document.getElementById('scrollIndicator');
+            
+            if (autoScroll) {
+                indicator.textContent = 'AUTO SCROLL: ON';
+                indicator.classList.remove('paused');
+                startAutoScroll();
+            } else {
+                indicator.textContent = 'AUTO SCROLL: OFF';
+                indicator.classList.add('paused');
+                stopAutoScroll();
+            }
+            
+            // Save preference to localStorage
+            localStorage.setItem('autoScroll', autoScroll.toString());
+        }
+        
+        // Event handlers for manual scrolling
+        let touchTimeout;
+        
+        document.addEventListener('touchstart', () => {
+            lastScrollTime = Date.now();
+            
+            if (autoScroll) {
+                stopAutoScroll();
+                clearTimeout(touchTimeout);
+                
+                // Resume auto-scroll after 5 seconds of no interaction
+                touchTimeout = setTimeout(() => {
+                    if (autoScroll) {
+                        startAutoScroll();
+                    }
+                }, 5000);
+            }
+        });
+        
+        document.addEventListener('wheel', () => {
+            lastScrollTime = Date.now();
+        });
+        
+        document.addEventListener('scroll', () => {
+            lastScrollTime = Date.now();
+        });
+        
+        // Toggle auto-scroll on button click
+        document.getElementById('scrollIndicator').addEventListener('click', toggleAutoScroll);
+        
+        // Load and apply settings
+        function loadSettings() {
+            // Check for auto-scroll preference
+            const savedAutoScroll = localStorage.getItem('autoScroll');
+            if (savedAutoScroll !== null) {
+                autoScroll = savedAutoScroll === 'true';
+                
+                // Update UI to match
+                const indicator = document.getElementById('scrollIndicator');
+                if (!autoScroll) {
+                    indicator.textContent = 'AUTO SCROLL: OFF';
+                    indicator.classList.add('paused');
+                }
+            }
+            
+            // Check for display settings
+            db.collection('settings').doc('display')
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const settings = doc.data();
+                        
+                        // Apply auto-scroll setting
+                        if (settings.autoScroll !== undefined) {
+                            autoScroll = settings.autoScroll;
+                            const indicator = document.getElementById('scrollIndicator');
+                            
+                            if (autoScroll) {
+                                indicator.textContent = 'AUTO SCROLL: ON';
+                                indicator.classList.remove('paused');
+                            } else {
+                                indicator.textContent = 'AUTO SCROLL: OFF';
+                                indicator.classList.add('paused');
+                            }
+                        }
+                        
+                        // Apply other settings
+                        if (!settings.showAuthor) {
+                            document.querySelectorAll('.comment-author').forEach(el => {
+                                el.style.display = 'none';
+                            });
+                        }
+                        
+                        if (!settings.showTimestamp) {
+                            document.querySelectorAll('.comment-time').forEach(el => {
+                                el.style.display = 'none';
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading settings:', error);
+                });
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup real-time updates
+            setupRealTimeComments();
+            
+            // Load settings
+            loadSettings();
+            
+            // Start auto-scroll if enabled
+            if (autoScroll) {
+                startAutoScroll();
+            }
+            
+            // Monitor for settings changes
+            db.collection('settings').doc('display')
+                .onSnapshot(doc => {
+                    if (doc.exists) {
+                        const settings = doc.data();
+                        
+                        // Apply auto-scroll setting
+                        if (settings.autoScroll !== undefined && autoScroll !== settings.autoScroll) {
+                            autoScroll = settings.autoScroll;
+                            
+                            if (autoScroll) {
+                                document.getElementById('scrollIndicator').textContent = 'AUTO SCROLL: ON';
+                                document.getElementById('scrollIndicator').classList.remove('paused');
+                                startAutoScroll();
+                            } else {
+                                document.getElementById('scrollIndicator').textContent = 'AUTO SCROLL: OFF';
+                                document.getElementById('scrollIndicator').classList.add('paused');
+                                stopAutoScroll();
+                            }
+                        }
+                    }
+                });
+        });
+        
+        // Handle visibility change (for when user switches tabs or minimizes)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Page is hidden
+                stopAutoScroll();
+            } else {
+                // Page is visible again
+                if (autoScroll) {
+                    startAutoScroll();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
