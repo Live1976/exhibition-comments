@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is happening in this house, I asked</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #fff;
+            color: #000;
+            line-height: 1.6;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 48px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 0;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+            background: transparent;
+            margin-bottom: 24px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-bottom-color: #000;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #000;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .message {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .comments {
+            border-top: 1px solid #eee;
+            padding-top: 48px;
+        }
+
+        .comment {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+        }
+
+        .comment-author {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .comment-text {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .comment-time {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 48px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+        
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            font-size: 12px;
+            color: #0f0;
+            max-width: 300px;
+            max-height: 200px;
+            overflow: auto;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel" id="debugPanel"></div>
+    
+    <div class="container">
+        <h1>What is happening in this house, I asked</h1>
+        
+        <div class="message success" id="successMessage">Thank you for your comment!</div>
+        <div class="message error" id="errorMessage">There was an error. Please try again.</div>
+        
+        <form id="commentForm">
+            <input type="text" id="name" placeholder="Your name" required>
+            <textarea id="comment" placeholder="Share your thoughts about the exhibition" required></textarea>
+            <button type="submit">SUBMIT</button>
+        </form>
+        
+        <div class="comments">
+            <div class="loading" id="loading">Loading comments</div>
+            <div id="commentsList"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_9YXNAYdFjmqK2iNKrra76zd05Nd61Iw",
+            authDomain: "exhibition-comments.firebaseapp.com",
+            projectId: "exhibition-comments",
+            storageBucket: "exhibition-comments.firebasestorage.app",
+            messagingSenderId: "166867670609",
+            appId: "1:166867670609:web:7e2009858a5e4ecd300a70",
+            measurementId: "G-D89J84MCH6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Debug mode (double tap top-right corner to toggle)
+        let debugMode = false;
+        let tapCount = 0;
+        let tapTimer = null;
+        
+        document.addEventListener('click', function(e) {
+            // Check if click is in top-right corner
+            if (e.clientX > window.innerWidth - 50 && e.clientY < 50) {
+                tapCount++;
+                
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(function() {
+                    tapCount = 0;
+                }, 500);
+                
+                if (tapCount >= 3) {
+                    debugMode = !debugMode;
+                    document.getElementById('debugPanel').style.display = debugMode ? 'block' : 'none';
+                    tapCount = 0;
+                    
+                    if (debugMode) {
+                        logDebug('Debug mode enabled');
+                        testFirebase();
+                    }
+                }
+            }
+        });
+        
+        function logDebug(message) {
+            if (debugMode) {
+                const debugPanel = document.getElementById('debugPanel');
+                debugPanel.innerHTML += message + '<br>';
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+            console.log(message);
+        }
+        
+        function testFirebase() {
+            logDebug('Testing Firebase connection...');
+            
+            db.collection('comments').limit(1).get()
+                .then(snapshot => {
+                    logDebug(`Connection successful. Found ${snapshot.size} comments.`);
+                    if (snapshot.size > 0) {
+                        const doc = snapshot.docs[0];
+                        logDebug(`Sample comment: ${JSON.stringify(doc.data())}`);
+                    }
+                })
+                .catch(error => {
+                    logDebug(`Firebase error: ${error.message}`);
+                });
+        }
+        
+        // Profanity filter
+        const blockedWords = [
+            'fuck', 'shit', 'ass', 'bastard', 'bitch', 'cock',
+            'cunt', 'dick', 'pussy', 'slut', 'whore', 'asshole'
+        ];
+        
+        // Check if text contains profanity
+        function containsProfanity(text) {
+            const lowerText = text.toLowerCase();
+            return blockedWords.some(word => 
+                lowerText.includes(word) || 
+                new RegExp(`\\b${word}\\b|\\b${word}[^a-z]|[^a-z]${word}\\b`).test(lowerText)
+            );
+        }
+        
+        // Show message
+        function showMessage(type, duration = 3000) {
+            const element = document.getElementById(`${type}Message`);
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, duration);
+        }
+        
+        // Format time
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            
+            let date;
+            if (timestamp.toDate) {
+                // Firestore Timestamp
+                date = timestamp.toDate();
+            } else if (timestamp instanceof Date) {
+                // JavaScript Date
+                date = timestamp;
+            } else {
+                // Assume it's a number or string representing milliseconds
+                date = new Date(timestamp);
+            }
+            
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            
+            return date.toLocaleDateString();
+        }
+        
+        // Get comment text (handling different field names)
+        function getCommentText(comment) {
+            // Try different field names that might contain the comment text
+            return comment.text || comment.content || comment.message || comment.comment || '(No content)';
+        }
+        
+        // Render comments
+        function renderComments(comments) {
+            const commentsContainer = document.getElementById('commentsList');
+            const loadingElement = document.getElementById('loading');
+            
+            loadingElement.style.display = 'none';
+            
+            if (!comments || comments.length === 0) {
+                commentsContainer.innerHTML = '<div class="empty">Be the first to comment</div>';
+                return;
+            }
+            
+            let html = '';
+            // Display only the first 5 comments
+            const recentComments = comments.slice(0, 5);
+            
+            recentComments.forEach(comment => {
+                const commentText = getCommentText(comment);
+                
+                html += `
+                    <div class="comment">
+                        <div class="comment-author">${comment.name || 'Anonymous'}</div>
+                        <div class="comment-text">${commentText}</div>
+                        <div class="comment-time">${formatTime(comment.timestamp)}</div>
+                    </div>
+                `;
+            });
+            
+            commentsContainer.innerHTML = html;
+        }
+        
+        // Load comments from Firebase
+        function loadComments() {
+            logDebug('Loading comments...');
+            
+            db.collection('comments')
+                .where('status', '==', 'approved')
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .get()
+                .then(snapshot => {
+                    const comments = [];
+                    snapshot.forEach(doc => {
+                        comments.push(doc.data());
+                    });
+                    logDebug(`Loaded ${comments.length} comments`);
+                    renderComments(comments);
+                })
+                .catch(error => {
+                    console.error('Error loading comments:', error);
+                    logDebug(`Loading error: ${error.message}`);
+                    document.getElementById('loading').textContent = 'Error loading comments';
+                });
+        }
+        
+        // Add comment to Firebase
+        function addComment(name, text) {
+            logDebug(`Adding comment: ${name}: ${text}`);
+            
+            // Check for profanity
+            const hasProfanity = containsProfanity(text);
+            if (hasProfanity) {
+                logDebug('Comment contains profanity, setting as pending');
+            }
+            
+            // Determine status based on profanity check
+            const status = hasProfanity ? 'pending' : 'approved';
+            
+            // Create comment object
+            const comment = {
+                name: name,
+                text: text,
+                timestamp: firebase.firestore.Timestamp.now(),
+                status: status
+            };
+            
+            // Add to Firebase
+            return db.collection('comments').add(comment)
+                .then(() => {
+                    logDebug('Comment added successfully');
+                    // Only reload comments if this one was approved
+                    if (status === 'approved') {
+                        loadComments();
+                    }
+                    return true;
+                })
+                .catch(error => {
+                    console.error('Error adding comment:', error);
+                    logDebug(`Error adding comment: ${error.message}`);
+                    return false;
+                });
+        }
+        
+        // Handle form submission
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nameInput = document.getElementById('name');
+            const commentInput = document.getElementById('comment');
+            
+            const name = nameInput.value.trim();
+            const text = commentInput.value.trim();
+            
+            if (name && text) {
+                // Disable form while submitting
+                const submitButton = this.querySelector('button');
+                submitButton.disabled = true;
+                submitButton.textContent = 'SUBMITTING...';
+                
+                addComment(name, text)
+                    .then(success => {
+                        if (success) {
+                            showMessage('success');
+                            this.reset();
+                        } else {
+                            showMessage('error');
+                        }
+                    })
+                    .catch(() => {
+                        showMessage('error');
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'SUBMIT';
+                    });
+            }
+        });
+        
+        // Real-time updates for comments
+        function setupRealTimeUpdates() {
+            logDebug('Setting up real-time updates');
+            
+            db.collection('comments')
+                .where('status', '==', 'approved')
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .onSnapshot(snapshot => {
+                    const comments = [];
+                    snapshot.forEach(doc => {
+                        comments.push(doc.data());
+                    });
+                    logDebug(`Real-time update: ${comments.length} comments`);
+                    renderComments(comments);
+                }, error => {
+                    logDebug(`Real-time error: ${error.message}`);
+                    console.error('Error in real-time updates:', error);
+                });
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            logDebug('Page loaded, initializing...');
+            
+            // Load initial comments
+            loadComments();
+            
+            // Setup real-time updates
+            setupRealTimeUpdates();
+            
+            // Check if Firebase has correct collection
+            setTimeout(() => {
+                db.collection('comments').get().then(snapshot => {
+                    logDebug(`Total comments in database: ${snapshot.size}`);
+                });
+            }, 2000);
+        });
+
+        // Add a test comment function for debugging
+        window.addTestComment = function() {
+            logDebug('Adding test comment');
+            
+            const testComment = {
+                name: "Test User",
+                text: "This is a test comment added at " + new Date().toLocaleTimeString(),
+                timestamp: firebase.firestore.Timestamp.now(),
+                status: "approved"
+            };
+            
+            db.collection('comments').add(testComment)
+                .then(doc => {
+                    logDebug(`Test comment added with ID: ${doc.id}`);
+                })
+                .catch(error => {
+                    logDebug(`Error adding test comment: ${error.message}`);
+                });
+        };
+    </script>
+</body>
+</html>
