@@ -197,16 +197,6 @@
             padding-bottom: 10px;
         }
         
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-family: inherit;
-        }
-        
         .save-btn {
             width: auto;
             margin-right: 10px;
@@ -241,6 +231,18 @@
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
+        }
+
+        .frequency-setting {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .frequency-setting h3 {
+            margin-bottom: 10px;
+            color: #1976d2;
         }
 
         @media (max-width: 768px) {
@@ -293,29 +295,25 @@
             </div>
             
             <div class="ai-section">
-                <h2>AI Comment Generation</h2>
+                <h2>Advanced AI Comment Generation</h2>
                 
                 <div class="control-group">
                     <label>OpenAI API Key:</label>
                     <input type="password" id="openaiApiKey" placeholder="sk-...">
                 </div>
 
-                <div class="control-group">
-                    <label>Comment Templates:</label>
-                    <textarea id="aiTemplates">The use of space here is fascinating, it feels both familiar and completely foreign.
-I keep thinking I've been in these rooms before, but I know I haven't.
-There's something unsettling about how normal everything looks yet feels wrong.
-The silence between the walls is almost tangible.
-I feel like I'm walking through someone else's memory.
-This place makes me question what's real and what's constructed.
-The lighting creates such an eerie atmosphere, I can't shake the feeling of being watched.
-It's like stepping into a dream where everything is slightly off.</textarea>
+                <div class="frequency-setting">
+                    <h3>Auto-Generation Settings</h3>
+                    <p>Current: Every 15-25 minutes (3-4 comments per hour)</p>
+                    <p>Exhibition Schedule: 5 days × 8 hours × ~20 comments = ~100 total comments</p>
+                    <p>System uses 20+ diverse prompt templates to avoid repetition</p>
                 </div>
 
                 <div class="ai-controls">
                     <button id="generatePreview" class="save-btn">Generate Preview</button>
                     <button id="generateBatch" class="save-btn">Generate 5 Comments</button>
                     <button id="enableAiComments" style="background: #4CAF50;">Enable Auto Generation</button>
+                    <button id="testDiversity" class="save-btn">Test Diversity (10 samples)</button>
                 </div>
                 
                 <div class="ai-preview" id="aiPreview">
@@ -357,24 +355,128 @@ It's like stepping into a dream where everything is slightly off.</textarea>
         const logoutBtn = document.getElementById('logoutBtn');
         const commentList = document.getElementById('commentList');
         const openaiApiKey = document.getElementById('openaiApiKey');
-        const aiTemplates = document.getElementById('aiTemplates');
         const generatePreview = document.getElementById('generatePreview');
         const generateBatch = document.getElementById('generateBatch');
         const enableAiComments = document.getElementById('enableAiComments');
+        const testDiversity = document.getElementById('testDiversity');
         const aiPreview = document.getElementById('aiPreview');
 
-        // Clean visitor names without emojis
+        // Realistic visitor names - more authentic and diverse
         const visitorNames = [
-            "Sarah M.", "David K.", "Elena R.", "Marcus T.", "Yuki S.", "Sofia L.", 
-            "James W.", "Priya N.", "Alex C.", "Marina V.", "Jordan P.", "Nora H.",
-            "Riley G.", "Zara B.", "Quinn F.", "Luna D.", "River M.", "Sage A.",
-            "Phoenix L.", "Rowan J.", "Ember K.", "Atlas N.", "Vera S.", "Kai T.",
-            "Sam R.", "Casey L.", "Morgan D.", "Taylor S.", "Blake P.", "Avery K."
+            "Maya", "Alex", "Sam", "K", "Jo", "Riley", "Casey", "M.", "R.K.", "visitor47",
+            "anon", "someone", "A.", "kim", "lee", "Pat", "sage", "river", "Sky", "Morgan",
+            "J.L.", "anonymous", "guest", "nina", "Kris", "Quinn", "Ash", "Dana", "Lou", "Sasha"
         ];
 
-        // AI generation state - adjusted for 3-4 comments per hour
+        // AI generation state with randomized timing
         let aiInterval = null;
         let aiGeneratedCount = 0;
+        let lastPromptUsed = null;
+        let usedPrompts = [];
+
+        // Real visitor reaction fragments from Schneider's Die Familie Schneider
+        const realVisitorReactions = [
+            "a queasy sense of trepidation set in",
+            "I feel oddly abandoned by this",
+            "primitive fears of monsters under the bed",
+            "sickening sense of déjà vu",
+            "narrow corridors are claustrophobic", 
+            "grimy flock wallpaper choked the rooms",
+            "when is the last time you thought twice about letting a door swing shut",
+            "realised, with a shudder, that you were not alone",
+            "moving like a ghost revisiting the scene of its own murder",
+            "the silence between the walls is almost tangible",
+            "beside himself. He walks through the house next to himself",
+            "I keep thinking I've been in these rooms before",
+            "everything looks normal but feels wrong",
+            "the proportions of the rooms were not quite right",
+            "body somehow knew something wasn't right",
+            "immersion walked hand in hand with estrangement"
+        ];
+
+        // Diverse prompt templates based on real visitor reactions
+        const promptTemplates = [
+            {
+                type: "initial_fear",
+                template: `You just entered an unsettling art installation. You're feeling nervous and uncertain. Write a 1-2 sentence visitor comment expressing immediate unease. Use simple, natural language. Focus on first impressions and physical sensations.`
+            },
+            {
+                type: "spatial_confusion", 
+                template: `You're walking through rooms that feel familiar yet wrong. Write a brief comment about spatial disorientation and the feeling that proportions aren't quite right. Be conversational and personal.`
+            },
+            {
+                type: "questioning",
+                template: `You're questioning your own perception and memory. Write a comment as a rhetorical question, wondering about what you're experiencing. Start with "When was the last time..." or "Why does..." or "How is it that..."`
+            },
+            {
+                type: "body_response",
+                template: `Your body is reacting to this space before your mind catches up. Write about physical sensations - queasy feeling, trepidation, shuddering. Keep it immediate and visceral.`
+            },
+            {
+                type: "deja_vu",
+                template: `You're experiencing strong déjà vu or false memory. Write about feeling like you've been here before, or seeing the same thing twice. Express confusion about reality and memory.`
+            },
+            {
+                type: "isolation",
+                template: `You feel alone and abandoned in this space. Write about silence, emptiness, or being cut off from the outside world. Use words that convey solitude and disconnection.`
+            },
+            {
+                type: "watching",
+                template: `You feel like you're being watched or observed. Write a brief comment about the feeling of eyes on you, or sensing invisible presence. Express subtle paranoia.`
+            },
+            {
+                type: "fragments",
+                template: `Express your experience in short, fragmented thoughts. Write 2-4 word phrases separated by periods. Focus on immediate impressions: "The silence. The repetition. Can't shake it."`
+            },
+            {
+                type: "normality_wrong",
+                template: `Everything looks normal but feels completely wrong. Write about the uncanny gap between appearance and feeling. Contrast the ordinary with the unsettling.`
+            },
+            {
+                type: "time_confusion",
+                template: `Time feels strange here - too slow, too fast, or suspended. Write about temporal disorientation or feeling stuck in a moment. Be poetic but grounded.`
+            },
+            {
+                type: "escape_impulse",
+                template: `You want to leave but feel compelled to stay. Write about the tension between curiosity and fear, being drawn in despite unease. Express conflicted feelings.`
+            },
+            {
+                type: "repetition",
+                template: `You're noticing disturbing repetitions or patterns. Write about seeing the same thing multiple times or feeling trapped in a loop. Express growing unease.`
+            },
+            {
+                type: "memory_trigger",
+                template: `This place reminds you of somewhere from your past - childhood home, hospital, school. Write about unwanted memories or associations this space triggers.`
+            },
+            {
+                type: "ghost_feeling",
+                template: `You feel like a ghost moving through someone else's space. Write about feeling invisible, insubstantial, or like you don't belong here. Use ethereal language.`
+            },
+            {
+                type: "rational_fear",
+                template: `Your rational mind is fighting primitive fear. Write about the struggle between logic and instinct, trying to stay calm while feeling increasingly uneasy.`
+            },
+            {
+                type: "details_wrong",
+                template: `Small details feel off - shadows, sounds, textures. Write about noticing subtle wrongness in ordinary things. Focus on one specific detail that disturbs you.`
+            },
+            {
+                type: "breath_space",
+                template: `The air feels thick, stale, or hard to breathe. Write about atmospheric pressure, claustrophobia, or feeling suffocated. Use sensory language.`
+            },
+            {
+                type: "conversation",
+                template: `Write as if talking to a friend about this experience. Use casual language: "I swear..." "You know when..." "It's like..." Keep it conversational and relatable.`
+            },
+            {
+                type: "art_student",
+                template: `You're an art student trying to analyze what you're experiencing. Write about the work's effect on you while struggling to maintain critical distance. Balance analysis with emotion.`
+            },
+            {
+                type: "tourist_brief",
+                template: `You're a tourist with limited time, quickly moving through. Write a rushed impression - immediate, surface-level but still affected. Use present tense urgency.`
+            }
+        ];
 
         // Login functionality
         loginForm.addEventListener('submit', function(e) {
@@ -389,16 +491,10 @@ It's like stepping into a dream where everything is slightly off.</textarea>
                 loadComments();
                 loadStats();
                 
-                // Check for saved API key
+                // Load saved API key
                 const savedApiKey = localStorage.getItem('openaiApiKey');
                 if (savedApiKey) {
                     openaiApiKey.value = savedApiKey;
-                }
-                
-                // Check for saved templates
-                const savedTemplates = localStorage.getItem('aiTemplates');
-                if (savedTemplates) {
-                    aiTemplates.value = savedTemplates;
                 }
             } else {
                 alert('Invalid credentials');
@@ -532,18 +628,41 @@ It's like stepping into a dream where everything is slightly off.</textarea>
                 });
         }
 
-        // Generate AI comment
-        async function generateAiComment(apiKey, templates) {
-            const templateLines = templates.split('\n').filter(t => t.trim());
-            const exhibitionName = "What is happening in this house, I asked";
+        // Advanced AI comment generation with diversity
+        async function generateAiComment(apiKey) {
+            localStorage.setItem('openaiApiKey', apiKey);
             
-            const promptTemplate = `
-You are a visitor to an immersive art exhibition called "${exhibitionName}".
-Write a short, thoughtful comment about the exhibition that feels like it was written by a real visitor.
-Make it personal, reflective, and between 1-2 sentences long.
-Do not use fancy art jargon or academic language. Write in a conversational, natural way.
-You may refer to or be inspired by these themes (but don't copy them directly):
-${templateLines.map(t => `- ${t}`).join('\n')}
+            // Reset used prompts if we've used them all
+            if (usedPrompts.length >= promptTemplates.length) {
+                usedPrompts = [];
+            }
+            
+            // Select a prompt template we haven't used recently
+            const availablePrompts = promptTemplates.filter(p => !usedPrompts.includes(p.type));
+            const selectedPrompt = availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
+            
+            // Track used prompts
+            usedPrompts.push(selectedPrompt.type);
+            if (usedPrompts.length > promptTemplates.length / 2) {
+                usedPrompts.shift(); // Remove oldest
+            }
+            
+            // Add context from real visitor reactions
+            const reactionContext = realVisitorReactions[Math.floor(Math.random() * realVisitorReactions.length)];
+            
+            const enhancedPrompt = `
+Context: You are visiting "Collective Domain", an immersive art exhibition that creates psychological spaces similar to Gregor Schneider's work. 
+
+Reference feeling: "${reactionContext}"
+
+${selectedPrompt.template}
+
+Requirements:
+- Write naturally, as a real visitor would
+- 1-2 sentences maximum
+- No academic art jargon
+- Personal and immediate
+- Avoid mentioning the exhibition title directly
 
 Your comment:`;
 
@@ -554,13 +673,16 @@ Your comment:`;
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
+                    model: 'gpt-4',
                     messages: [
-                        { role: "system", content: "You are a thoughtful museum or gallery visitor." },
-                        { role: "user", content: promptTemplate }
+                        { 
+                            role: "system", 
+                            content: "You are a museum visitor writing an immediate, honest reaction. Be authentic, vulnerable, and human. Avoid clichés and art-speak."
+                        },
+                        { role: "user", content: enhancedPrompt }
                     ],
-                    temperature: 0.7,
-                    max_tokens: 150
+                    temperature: 0.9,
+                    max_tokens: 80
                 })
             });
             
@@ -570,7 +692,10 @@ Your comment:`;
                 throw new Error(data.error.message);
             }
             
-            return data.choices[0].message.content.trim();
+            return {
+                text: data.choices[0].message.content.trim().replace(/^["']|["']$/g, ''),
+                promptType: selectedPrompt.type
+            };
         }
 
         // Event handlers
@@ -581,20 +706,16 @@ Your comment:`;
                 return;
             }
             
-            // Save API key and templates
-            localStorage.setItem('openaiApiKey', apiKey);
-            localStorage.setItem('aiTemplates', aiTemplates.value);
-            
             generatePreview.textContent = 'GENERATING...';
             generatePreview.disabled = true;
             
             try {
-                const comment = await generateAiComment(apiKey, aiTemplates.value);
+                const result = await generateAiComment(apiKey);
                 const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                 
                 aiPreview.innerHTML = `
-                    <strong>Preview:</strong><br>
-                    <strong>${randomName}:</strong> ${comment}
+                    <strong>Preview (${result.promptType}):</strong><br>
+                    <strong>${randomName}:</strong> ${result.text}
                 `;
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
@@ -615,25 +736,26 @@ Your comment:`;
             generateBatch.disabled = true;
             
             try {
-                aiPreview.innerHTML = '<strong>Generating 5 comments...</strong><br><br>';
+                aiPreview.innerHTML = '<strong>Generating 5 diverse comments...</strong><br><br>';
                 
                 for (let i = 0; i < 5; i++) {
-                    const comment = await generateAiComment(apiKey, aiTemplates.value);
+                    const result = await generateAiComment(apiKey);
                     const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                     
                     // Add to database
                     await db.collection('comments').add({
                         name: randomName,
-                        text: comment,
+                        text: result.text,
                         timestamp: firebase.firestore.Timestamp.now(),
                         status: 'approved',
-                        isAi: true
+                        isAi: true,
+                        promptType: result.promptType
                     });
                     
-                    aiPreview.innerHTML += `${i + 1}. <strong>${randomName}:</strong> ${comment}<br><br>`;
+                    aiPreview.innerHTML += `${i + 1}. [${result.promptType}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
                     
-                    // Small delay between generations
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Delay between generations
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                 }
                 
                 aiPreview.innerHTML += '<em>All comments added successfully!</em>';
@@ -648,7 +770,42 @@ Your comment:`;
             }
         });
 
-        // Auto-generation toggle - adjusted for 3-4 comments per hour
+        // Test diversity
+        testDiversity.addEventListener('click', async function() {
+            const apiKey = openaiApiKey.value.trim();
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key first');
+                return;
+            }
+            
+            testDiversity.textContent = 'TESTING...';
+            testDiversity.disabled = true;
+            
+            try {
+                aiPreview.innerHTML = '<strong>Testing diversity with 10 samples:</strong><br><br>';
+                const usedTypes = new Set();
+                
+                for (let i = 0; i < 10; i++) {
+                    const result = await generateAiComment(apiKey);
+                    const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
+                    
+                    usedTypes.add(result.promptType);
+                    aiPreview.innerHTML += `${i + 1}. [${result.promptType}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
+                    
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                aiPreview.innerHTML += `<em>Used ${usedTypes.size} different prompt types out of ${promptTemplates.length} available</em>`;
+                
+            } catch (error) {
+                aiPreview.textContent = `Error: ${error.message}`;
+            } finally {
+                testDiversity.textContent = 'Test Diversity (10 samples)';
+                testDiversity.disabled = false;
+            }
+        });
+
+        // Auto-generation with randomized timing
         enableAiComments.addEventListener('click', function() {
             const apiKey = openaiApiKey.value.trim();
             if (!apiKey) {
@@ -664,49 +821,66 @@ Your comment:`;
                 enableAiComments.style.background = '#4CAF50';
                 aiPreview.innerHTML = 'Auto-generation disabled.';
             } else {
-                // Enable AI comments - generate every 15-20 minutes (3-4 per hour)
-                const frequency = 18; // 18 minutes = 3.33 comments per hour
+                // Enable AI comments with randomized timing
                 enableAiComments.textContent = 'Disable Auto Generation';
                 enableAiComments.style.background = '#f44336';
-                aiPreview.innerHTML = `Auto-generation enabled! New comments will be generated every ${frequency} minutes (approximately 3-4 per hour).`;
+                aiPreview.innerHTML = 'Auto-generation enabled! Comments will be generated every 15-25 minutes with high diversity.';
                 
                 // Generate first comment immediately
                 generateAndPostAiComment();
                 
-                // Set interval for future comments
-                aiInterval = setInterval(generateAndPostAiComment, frequency * 60 * 1000);
+                // Schedule next comment with random interval
+                scheduleNextComment();
             }
         });
 
-        // Generate and post AI comment
+    
+   // Schedule next comment with randomized timing
+        function scheduleNextComment() {
+            // Random interval between 15-25 minutes (900000-1500000 ms)
+            const minInterval = 15 * 60 * 1000; // 15 minutes
+            const maxInterval = 25 * 60 * 1000; // 25 minutes
+            const randomInterval = minInterval + Math.random() * (maxInterval - minInterval);
+            
+            aiInterval = setTimeout(() => {
+                generateAndPostAiComment();
+                scheduleNextComment(); // Schedule the next one
+            }, randomInterval);
+            
+            const nextInMinutes = Math.round(randomInterval / 60000);
+            console.log(`Next AI comment scheduled in ${nextInMinutes} minutes`);
+        }
+
+        // Generate and post AI comment automatically
         async function generateAndPostAiComment() {
             const apiKey = openaiApiKey.value.trim();
-            const templates = aiTemplates.value;
             
             try {
-                const comment = await generateAiComment(apiKey, templates);
+                const result = await generateAiComment(apiKey);
                 
-                // Random AI name (without emojis)
+                // Random visitor name
                 const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                 
                 // Add to database
                 await db.collection('comments').add({
                     name: randomName,
-                    text: comment,
+                    text: result.text,
                     timestamp: firebase.firestore.Timestamp.now(),
                     status: 'approved',
-                    isAi: true
+                    isAi: true,
+                    promptType: result.promptType
                 });
                 
-                // Reload comments
+                console.log(`Auto-generated comment (${result.promptType}):`, result.text);
+                
+                // Reload comments and stats
                 loadComments();
                 loadStats();
                 
-                console.log('Auto-generated comment:', comment);
             } catch (error) {
-                console.error('Error generating AI comment:', error);
+                console.error('Error generating auto comment:', error);
             }
         }
     </script>
 </body>
-</html>
+</html>                                                               
