@@ -58,6 +58,91 @@
             display: none;
         }
 
+        .comment-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #007cba;
+            color: white;
+            border-color: #007cba;
+        }
+
+        .filter-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-btn.active:hover {
+            background: #005a8b;
+        }
+
+        .ai-analysis {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #b3d9ff;
+        }
+
+        .ai-analysis h3 {
+            margin-bottom: 15px;
+            color: #0066cc;
+        }
+
+        .prompt-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .prompt-stat {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+        }
+
+        .prompt-type {
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        .ai-comment-item {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .human-comment-item {
+            border-left: 4px solid #2196F3;
+        }
+
+        .comment-meta {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         .comment-list {
             margin-top: 20px;
         }
@@ -253,6 +338,14 @@
             .ai-controls button {
                 width: 100%;
             }
+            
+            .filter-buttons {
+                flex-direction: column;
+            }
+            
+            .prompt-stats {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -287,6 +380,17 @@
                 <div class="stat-card">
                     <div class="stat-number" id="aiGenerated">0</div>
                     <div class="stat-label">AI GENERATED</div>
+                </div>
+            </div>
+            
+            <div class="comment-controls">
+                <div class="filter-buttons">
+                    <button id="showAll" class="filter-btn active">Show All Comments</button>
+                    <button id="showAI" class="filter-btn">AI Comments Only</button>
+                    <button id="showHuman" class="filter-btn">Human Comments Only</button>
+                </div>
+                <div class="ai-analysis" id="aiAnalysis" style="display: none;">
+                    <!-- AI analysis will appear here -->
                 </div>
             </div>
             
@@ -360,6 +464,10 @@
         const enableAiComments = document.getElementById('enableAiComments');
         const testDiversity = document.getElementById('testDiversity');
         const aiPreview = document.getElementById('aiPreview');
+        const showAll = document.getElementById('showAll');
+        const showAI = document.getElementById('showAI');
+        const showHuman = document.getElementById('showHuman');
+        const aiAnalysis = document.getElementById('aiAnalysis');
 
         // Realistic visitor names - more authentic and diverse
         const visitorNames = [
@@ -373,6 +481,10 @@
         let aiGeneratedCount = 0;
         let lastPromptUsed = null;
         let usedPrompts = [];
+
+        // Global variables for filtering
+        let allComments = [];
+        let currentFilter = 'all';
 
         // Real visitor reaction fragments from Schneider's Die Familie Schneider
         const realVisitorReactions = [
@@ -489,7 +601,6 @@
                 loginSection.style.display = 'none';
                 adminPanel.style.display = 'block';
                 loadComments();
-                loadStats();
                 
                 // Load saved API key
                 const savedApiKey = localStorage.getItem('openaiApiKey');
@@ -508,8 +619,8 @@
             document.getElementById('loginForm').reset();
         });
 
-        // Load comments
-        function loadComments() {
+        // Load comments with filtering capability
+        function loadComments(filter = 'all') {
             db.collection('comments')
                 .orderBy('timestamp', 'desc')
                 .get()
@@ -519,47 +630,24 @@
                         return;
                     }
                     
-                    let html = '';
-                    let aiCount = 0;
-                    
+                    // Store all comments
+                    allComments = [];
                     snapshot.forEach(doc => {
-                        const comment = doc.data();
-                        const timestamp = comment.timestamp ? comment.timestamp.toDate() : new Date();
-                        const formattedTime = formatTime(timestamp);
-                        
-                        if (comment.isAi) aiCount++;
-                        
-                        html += `
-                            <div class="comment-item ${comment.status === 'pending' ? 'pending' : ''}">
-                                <div class="comment-header">
-                                    <div class="comment-author">${comment.name}</div>
-                                    <div class="comment-time">${formattedTime}</div>
-                                </div>
-                                <div class="comment-content">${comment.text || comment.content}</div>
-                                <div class="comment-actions">
-                                    ${comment.status === 'pending' ? `<button class="approve-btn" data-id="${doc.id}">APPROVE</button>` : ''}
-                                    <button class="delete-btn" data-id="${doc.id}">DELETE</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    commentList.innerHTML = html;
-                    aiGeneratedCount = aiCount;
-                    document.getElementById('aiGenerated').textContent = aiGeneratedCount;
-                    
-                    // Add event listeners to buttons
-                    document.querySelectorAll('.delete-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            deleteComment(this.dataset.id);
+                        allComments.push({
+                            id: doc.id,
+                            ...doc.data()
                         });
                     });
                     
-                    document.querySelectorAll('.approve-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            approveComment(this.dataset.id);
-                        });
-                    });
+                    // Apply filter and render
+                    renderComments(filter);
+                    updateStats();
+                    
+                    if (filter === 'ai') {
+                        showAIAnalysis();
+                    } else {
+                        aiAnalysis.style.display = 'none';
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading comments:', error);
@@ -567,13 +655,156 @@
                 });
         }
 
+        // Render comments based on filter
+        function renderComments(filter) {
+            let filteredComments = allComments;
+            
+            if (filter === 'ai') {
+                filteredComments = allComments.filter(comment => comment.isAi);
+            } else if (filter === 'human') {
+                filteredComments = allComments.filter(comment => !comment.isAi);
+            }
+            
+            if (filteredComments.length === 0) {
+                const filterText = filter === 'ai' ? 'AI' : filter === 'human' ? 'human' : '';
+                commentList.innerHTML = `<p style="text-align: center; padding: 20px;">No ${filterText} comments yet.</p>`;
+                return;
+            }
+            
+            let html = '';
+            filteredComments.forEach(comment => {
+                const timestamp = comment.timestamp ? comment.timestamp.toDate() : new Date();
+                const formattedTime = formatTime(timestamp);
+                const commentClass = comment.isAi ? 'ai-comment-item' : 'human-comment-item';
+                
+                html += `
+                    <div class="comment-item ${comment.status === 'pending' ? 'pending' : ''} ${commentClass}">
+                        <div class="comment-header">
+                            <div class="comment-author">${comment.name}</div>
+                            <div class="comment-time">${formattedTime}</div>
+                        </div>
+                        <div class="comment-content">${comment.text || comment.content}</div>
+                        ${comment.isAi && comment.promptType ? `<div class="comment-meta">AI Generated • Type: ${comment.promptType}</div>` : ''}
+                        ${!comment.isAi ? '<div class="comment-meta">Human Generated</div>' : ''}
+                        <div class="comment-actions">
+                            ${comment.status === 'pending' ? `<button class="approve-btn" data-id="${comment.id}">APPROVE</button>` : ''}
+                            <button class="delete-btn" data-id="${comment.id}">DELETE</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            commentList.innerHTML = html;
+            
+            // Add event listeners to buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteComment(this.dataset.id);
+                });
+            });
+            
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    approveComment(this.dataset.id);
+                });
+            });
+        }
+
+        // Show AI analysis
+        function showAIAnalysis() {
+            const aiComments = allComments.filter(comment => comment.isAi);
+            
+            if (aiComments.length === 0) {
+                aiAnalysis.innerHTML = '<p>No AI comments to analyze yet.</p>';
+                aiAnalysis.style.display = 'block';
+                return;
+            }
+            
+            // Count prompt types
+            const promptStats = {};
+            aiComments.forEach(comment => {
+                const type = comment.promptType || 'unknown';
+                promptStats[type] = (promptStats[type] || 0) + 1;
+            });
+            
+            // Generate analysis HTML
+            let analysisHTML = `
+                <h3>AI Comments Analysis</h3>
+                <p><strong>Total AI Comments:</strong> ${aiComments.length}</p>
+                <p><strong>Different Prompt Types Used:</strong> ${Object.keys(promptStats).length}</p>
+                <div class="prompt-stats">
+            `;
+            
+            Object.entries(promptStats)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([type, count]) => {
+                    const percentage = ((count / aiComments.length) * 100).toFixed(1);
+                    analysisHTML += `
+                        <div class="prompt-stat">
+                            <div class="prompt-type">${type.replace(/_/g, ' ')}</div>
+                            <div>${count} comments (${percentage}%)</div>
+                        </div>
+                    `;
+                });
+            
+            analysisHTML += '</div>';
+            
+            // Add recent AI comments preview
+            const recentAI = aiComments.slice(0, 5);
+            analysisHTML += '<h4 style="margin-top: 15px; margin-bottom: 10px;">Recent AI Comments:</h4>';
+            recentAI.forEach((comment, index) => {
+                analysisHTML += `<div style="margin-bottom: 8px; font-size: 13px;"><strong>${index + 1}.</strong> [${comment.promptType}] ${comment.text}</div>`;
+            });
+            
+            aiAnalysis.innerHTML = analysisHTML;
+            aiAnalysis.style.display = 'block';
+        }
+
+        // Update stats
+        function updateStats() {
+            const aiCount = allComments.filter(comment => comment.isAi).length;
+            const pendingCount = allComments.filter(comment => comment.status === 'pending').length;
+            
+            document.getElementById('totalComments').textContent = allComments.length;
+            document.getElementById('pendingComments').textContent = pendingCount;
+            document.getElementById('aiGenerated').textContent = aiCount;
+        }
+
+        // Filter button event listeners
+        showAll.addEventListener('click', function() {
+            setActiveFilter('all');
+            renderComments('all');
+            aiAnalysis.style.display = 'none';
+        });
+
+        showAI.addEventListener('click', function() {
+            setActiveFilter('ai');
+            renderComments('ai');
+            showAIAnalysis();
+        });
+
+        showHuman.addEventListener('click', function() {
+            setActiveFilter('human');
+            renderComments('human');
+            aiAnalysis.style.display = 'none';
+        });
+
+        function setActiveFilter(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (filter === 'all') showAll.classList.add('active');
+            else if (filter === 'ai') showAI.classList.add('active');
+            else if (filter === 'human') showHuman.classList.add('active');
+            
+            currentFilter = filter;
+        }
+
         // Delete comment
         function deleteComment(id) {
             if (confirm('Are you sure you want to delete this comment?')) {
                 db.collection('comments').doc(id).delete()
                     .then(() => {
-                        loadComments();
-                        loadStats();
+                        loadComments(currentFilter);
                     })
                     .catch(error => {
                         console.error('Error deleting comment:', error);
@@ -588,8 +819,7 @@
                 status: 'approved'
             })
             .then(() => {
-                loadComments();
-                loadStats();
+                loadComments(currentFilter);
             })
             .catch(error => {
                 console.error('Error approving comment:', error);
@@ -612,27 +842,16 @@
             return timestamp.toLocaleDateString();
         }
 
-        // Load stats
+        // Load stats (compatibility function)
         function loadStats() {
-            // Total comments
-            db.collection('comments').get().then(snapshot => {
-                document.getElementById('totalComments').textContent = snapshot.size;
-            });
-            
-            // Pending comments
-            db.collection('comments')
-                .where('status', '==', 'pending')
-                .get()
-                .then(snapshot => {
-                    document.getElementById('pendingComments').textContent = snapshot.size;
-                });
+            loadComments(currentFilter);
         }
 
         // Advanced AI comment generation with diversity
         async function generateAiComment(apiKey) {
             localStorage.setItem('openaiApiKey', apiKey);
             
-            // Reset used prompts if we've used them all
+                // Reset used prompts if we've used them all
             if (usedPrompts.length >= promptTemplates.length) {
                 usedPrompts = [];
             }
@@ -759,8 +978,7 @@ Your comment:`;
                 }
                 
                 aiPreview.innerHTML += '<em>All comments added successfully!</em>';
-                loadComments();
-                loadStats();
+                loadComments(currentFilter);
                 
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
@@ -815,7 +1033,7 @@ Your comment:`;
             
             if (aiInterval) {
                 // Disable AI comments
-                clearInterval(aiInterval);
+                clearTimeout(aiInterval);
                 aiInterval = null;
                 enableAiComments.textContent = 'Enable Auto Generation';
                 enableAiComments.style.background = '#4CAF50';
@@ -834,8 +1052,7 @@ Your comment:`;
             }
         });
 
-    
-   // Schedule next comment with randomized timing
+        // Schedule next comment with randomized timing
         function scheduleNextComment() {
             // Random interval between 15-25 minutes (900000-1500000 ms)
             const minInterval = 15 * 60 * 1000; // 15 minutes
@@ -873,14 +1090,20 @@ Your comment:`;
                 
                 console.log(`Auto-generated comment (${result.promptType}):`, result.text);
                 
-                // Reload comments and stats
-                loadComments();
-                loadStats();
+                // Reload comments if currently viewing
+                if (currentFilter !== 'human') {
+                    loadComments(currentFilter);
+                }
                 
             } catch (error) {
                 console.error('Error generating auto comment:', error);
             }
         }
+
+        // Auto-save API key
+        openaiApiKey.addEventListener('change', function() {
+            localStorage.setItem('openaiApiKey', this.value);
+        });
     </script>
 </body>
-</html>                                                               
+</html>
