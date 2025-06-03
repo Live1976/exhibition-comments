@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collective Domain - Admin Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #000;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(0, 128, 255, 0.1);
+            border: 2px solid #0080ff;
+            color: #fff;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 18px;
+            font-weight: normal;
+            color: #0080ff;
+        }
+
+        .login-section {
+            background: rgba(0, 128, 255, 0.1);
+            border: 2px solid #0080ff;
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 128, 255, 0.2);
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .login-section h2 {
+            margin-bottom: 20px;
+            font-weight: 400;
+            text-align: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: #0080ff;
+        }
+
+        .admin-panel {
+            display: none;
+        }
+
+        .comment-list {
+            margin-top: 20px;
+        }
+
+        .comment-item {
+            background: rgba(0, 128, 255, 0.1);
+            border: 2px solid #0080ff;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 128, 255, 0.1);
+            position: relative;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 500;
+            color: #00ff00;
+        }
+
+        .comment-time {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .comment-content {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .comment-actions {
+            text-align: right;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .approve-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .pending {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: #ff9800;
+        }
+
+        .pending::before {
+            content: "PENDING REVIEW";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff9800;
+            color: #000;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #0080ff;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: transparent;
+            color: #0080ff;
+            border: 2px solid #0080ff;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(0, 128, 255, 0.2);
+            color: #fff;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 2px solid #ff4444;
+            color: #ff4444;
+            width: auto;
+            font-size: 10px;
+            padding: 8px 15px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: #fff;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background: rgba(0, 128, 255, 0.1);
+            border: 2px solid #0080ff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 128, 255, 0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 5px;
+            color: #00ff00;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            font-family: 'Press Start 2P', monospace;
+        }
+        
+        .ai-section {
+            margin-top: 30px;
+            background: rgba(0, 128, 255, 0.1);
+            border: 2px solid #0080ff;
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 128, 255, 0.1);
+        }
+        
+        .ai-section h2 {
+            margin-bottom: 20px;
+            font-weight: 400;
+            border-bottom: 2px solid #0080ff;
+            padding-bottom: 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: #0080ff;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #0080ff;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-family: inherit;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            resize: vertical;
+        }
+        
+        .save-btn {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .ai-preview {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            min-height: 100px;
+            font-family: monospace;
+            color: #00ff00;
+        }
+
+        .ai-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ai-controls button {
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: #0080ff;
+        }
+
+        .visitor-profiles {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #0080ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .visitor-profiles h3 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            margin-bottom: 15px;
+        }
+
+        .generation-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .generation-settings {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Section -->
+    <div class="login-section" id="loginSection">
+        <h2>ADMIN ACCESS</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">LOGIN</button>
+        </form>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <header>
+            <h1>COLLECTIVE DOMAIN ADMIN</h1>
+            <button class="logout-btn" id="logoutBtn">LOGOUT</button>
+        </header>
+        
+        <div class="container">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalComments">0</div>
+                    <div class="stat-label">TOTAL COMMENTS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingComments">0</div>
+                    <div class="stat-label">PENDING</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aiGenerated">0</div>
+                    <div class="stat-label">AI GENERATED</div>
+                </div>
+            </div>
+            
+            <div class="comment-list" id="commentList">
+                <!-- Comments will be loaded here -->
+            </div>
+            
+            <div class="ai-section">
+                <h2>INTELLIGENT COMMENT GENERATION</h2>
+                
+                <div class="control-group">
+                    <label>OpenAI API Key:</label>
+                    <input type="password" id="openaiApiKey" placeholder="sk-...">
+                </div>
+
+                <div class="generation-settings">
+                    <div class="control-group">
+                        <label>Visitor Personas:</label>
+                        <div class="visitor-profiles">
+                            <h3>Exhibition Visitor Types</h3>
+                            <textarea id="visitorPersonas" rows="8">Art Student - Young, analytical, seeking meaning in abstract forms
+Gallery Regular - Middle-aged, experienced, comparing to previous exhibitions  
+First-time Visitor - Curious but uncertain, overwhelmed by the atmosphere
+Critic/Journalist - Professional observer, noting technical and conceptual details
+Tourist - Brief visit, looking for memorable moments to share
+Local Resident - Familiar with the space, noticing changes and continuities
+Artist - Fellow practitioner, considering process and intention
+Academic - Theoretical framework, historical context, institutional critique</textarea>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Atmospheric Elements:</label>
+                        <div class="visitor-profiles">
+                            <h3>Sensory & Emotional Triggers</h3>
+                            <textarea id="atmosphericElements" rows="8">Spatial disorientation - rooms within rooms, familiar yet strange
+Temporal confusion - past and present merging, memory and reality
+Sound isolation - muffled voices, distant footsteps, architectural silence
+Lighting ambiguity - artificial warmth, shadows that don't match
+Material intimacy - domestic objects in institutional space
+Psychological pressure - being watched, being lost, being found
+Collective solitude - shared experience of individual confusion
+Architectural uncanny - home spaces made foreign, comfort made uncomfortable</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-controls">
+                    <button id="generatePreview" class="save-btn">GENERATE PREVIEW</button>
+                    <button id="generateBatch" class="save-btn">GENERATE 5 COMMENTS</button>
+                    <button id="enableAiComments" style="background: #00ff00; color: #000;">START AUTO GENERATION</button>
+                    <button id="analyzeExisting" class="save-btn">ANALYZE EXISTING COMMENTS</button>
+                </div>
+                
+                <div class="ai-preview" id="aiPreview">
+                    AI-generated comments will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_9YXNAYdFjmqK2iNKrra76zd05Nd61Iw",
+            authDomain: "exhibition-comments.firebaseapp.com",
+            projectId: "exhibition-comments",
+            storageBucket: "exhibition-comments.firebasestorage.app",
+            messagingSenderId: "166867670609",
+            appId: "1:166867670609:web:7e2009858a5e4ecd300a70",
+            measurementId: "G-D89J84MCH6"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Admin credentials
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "password123";
+
+        // DOM elements
+        const loginSection = document.getElementById('loginSection');
+        const adminPanel = document.getElementById('adminPanel');
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const commentList = document.getElementById('commentList');
+        const openaiApiKey = document.getElementById('openaiApiKey');
+        const visitorPersonas = document.getElementById('visitorPersonas');
+        const atmosphericElements = document.getElementById('atmosphericElements');
+        const generatePreview = document.getElementById('generatePreview');
+        const generateBatch = document.getElementById('generateBatch');
+        const enableAiComments = document.getElementById('enableAiComments');
+        const analyzeExisting = document.getElementById('analyzeExisting');
+        const aiPreview = document.getElementById('aiPreview');
+
+        // Generated visitor names pool
+        const visitorNames = [
+            "Sarah M.", "David K.", "Elena R.", "Marcus T.", "Yuki S.", "Sofia L.", 
+            "James W.", "Priya N.", "Alex C.", "Marina V.", "Jordan P.", "Nora H.",
+            "Riley G.", "Zara B.", "Quinn F.", "Luna D.", "River M.", "Sage A.",
+            "Phoenix L.", "Rowan J.", "Ember K.", "Atlas N.", "Vera S.", "Kai T."
+        ];
+
+        // AI generation state
+        let aiInterval = null;
+        let aiGeneratedCount = 0;
+
+        // Login functionality
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                loginSection.style.display = 'none';
+                adminPanel.style.display = 'block';
+                loadComments();
+                loadStats();
+                loadSavedSettings();
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', function() {
+            loginSection.style.display = 'block';
+            adminPanel.style.display = 'none';
+            document.getElementById('loginForm').reset();
+        });
+
+        // Load saved settings
+        function loadSavedSettings() {
+            const savedApiKey = localStorage.getItem('openaiApiKey');
+            if (savedApiKey) {
+                openaiApiKey.value = savedApiKey;
+            }
+            
+            const savedPersonas = localStorage.getItem('visitorPersonas');
+            if (savedPersonas) {
+                visitorPersonas.value = savedPersonas;
+            }
+            
+            const savedElements = localStorage.getItem('atmosphericElements');
+            if (savedElements) {
+                atmosphericElements.value = savedElements;
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            localStorage.setItem('openaiApiKey', openaiApiKey.value);
+            localStorage.setItem('visitorPersonas', visitorPersonas.value);
+            localStorage.setItem('atmosphericElements', atmosphericElements.value);
+        }
+
+        // Load comments
+        function loadComments() {
+            db.collection('comments')
+                .orderBy('timestamp', 'desc')
+                .get()
+                .then(snapshot => {
+                    if (snapshot.empty) {
+                        commentList.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">No comments yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    let aiCount = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const comment = doc.data();
+                        const timestamp = comment.timestamp ? comment.timestamp.toDate() : new Date();
+                        const formattedTime = formatTime(timestamp);
+                        
+                        if (comment.isAi) aiCount++;
+                        
+                        html += `
+                            <div class="comment-item ${comment.status === 'pending' ? 'pending' : ''}">
+                                <div class="comment-header">
+                                    <div class="comment-author">${comment.name}${comment.isAi ? ' 🤖' : ''}</div>
+                                    <div class="comment-time">${formattedTime}</div>
+                                </div>
+                                <div class="comment-content">${comment.text || comment.content}</div>
+                                <div class="comment-actions">
+                                    ${comment.status === 'pending' ? `<button class="approve-btn" data-id="${doc.id}">APPROVE</button>` : ''}
+                                    <button class="delete-btn" data-id="${doc.id}">DELETE</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    commentList.innerHTML = html;
+                    aiGeneratedCount = aiCount;
+                    document.getElementById('aiGenerated').textContent = aiGeneratedCount;
+                    
+                    // Add event listeners to buttons
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            deleteComment(this.dataset.id);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.approve-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            approveComment(this.dataset.id);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading comments:', error);
+                    commentList.innerHTML = `<p>Error loading comments: ${error.message}</p>`;
+                });
+        }
+
+        // Delete comment
+        function deleteComment(id) {
+            if (confirm('Are you sure you want to delete this comment?')) {
+                db.collection('comments').doc(id).delete()
+                    .then(() => {
+                        loadComments();
+                        loadStats();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting comment:', error);
+                        alert(`Error deleting comment: ${error.message}`);
+                    });
+            }
+        }
+
+        // Approve comment
+        function approveComment(id) {
+            db.collection('comments').doc(id).update({
+                status: 'approved'
+            })
+            .then(() => {
+                loadComments();
+                loadStats();
+            })
+            .catch(error => {
+                console.error('Error approving comment:', error);
+                alert(`Error approving comment: ${error.message}`);
+            });
+        }
+
+        // Format timestamp
+        function formatTime(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            
+            return timestamp.toLocaleDateString();
+        }
+
+        // Load stats
+        function loadStats() {
+            // Total comments
+            db.collection('comments').get().then(snapshot => {
+                document.getElementById('totalComments').textContent = snapshot.size;
+            });
+            
+            // Pending comments
+            db.collection('comments')
+                .where('status', '==', 'pending')
+                .get()
+                .then(snapshot => {
+                    document.getElementById('pendingComments').textContent = snapshot.size;
+                });
+        }
+
+        // Generate AI comment with improved prompting
+        async function generateAiComment(apiKey, existingComments = []) {
+            saveSettings();
+            
+            const personas = visitorPersonas.value;
+            const atmospherics = atmosphericElements.value;
+            
+            // Analyze existing comments to understand the style
+            const recentComments = existingComments.slice(0, 10).map(c => `"${c.text}"`).join('\n');
+            
+            const prompt = `You are generating authentic visitor comments for an immersive art exhibition similar to Gregor Schneider's psychological spaces. The exhibition creates disorienting domestic environments that blur reality and memory.
+
+VISITOR PERSONAS:
+${personas}
+
+ATMOSPHERIC ELEMENTS:
+${atmospherics}
+
+RECENT VISITOR COMMENTS (for style reference):
+${recentComments}
+
+REQUIREMENTS:
+- Write as a single visitor experiencing the space
+- 1-2 sentences maximum
+- Focus on immediate sensory/emotional response
+- Use subtle, ambiguous language
+- Avoid mentioning exhibition title, artist name, or technical details
+- Capture the feeling of being disoriented yet engaged
+- Use natural, conversational English
+- Each comment should feel like a different person's authentic response
+
+Generate ONE comment that feels like a real visitor's immediate reaction to this unsettling yet compelling space:`;
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4',
+                    messages: [
+                        { 
+                            role: "system", 
+                            content: "You are an empathetic observer who captures authentic human responses to challenging art experiences. Your responses should feel like real visitor comments - immediate, personal, and slightly vulnerable."
+                        },
+                        { role: "user", content: prompt }
+                    ],
+                    temperature: 0.8,
+                    max_tokens: 100
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
+            return data.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
+        }
+
+        // Get existing comments for context
+        async function getExistingComments() {
+            try {
+                const snapshot = await db.collection('comments')
+                    .where('status', '==', 'approved')
+                    .orderBy('timestamp', 'desc')
+                    .limit(20)
+                    .get();
+                
+                const comments = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.isAi) { // Only use human comments for style reference
+                        comments.push(data);
+                    }
+                });
+                
+                return comments;
+            } catch (error) {
+                console.error('Error fetching existing comments:', error);
+                return [];
+            }
+        }
+
+        // Event handlers
+        generatePreview.addEventListener('click', async function() {
+            const apiKey = openaiApiKey.value.trim();
+            if (!apiKey) {
+                aiPreview.textContent = 'Please enter your OpenAI API key first';
+                return;
+            }
+            
+            generatePreview.textContent = 'GENERATING...';
+            generatePreview.disabled = true;
+            
+            try {
+                const existingComments = await getExistingComments();
+                const comment = await generateAiComment(apiKey, existingComments);
+                const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
+                
+                aiPreview.innerHTML = `
+                    <strong>Preview:</strong><br>
+                    <strong>${randomName}:</strong> "${comment}"<br><br>
+                    <em>This comment captures the exhibition's atmosphere without revealing specific details.</em>
+                `;
+            } catch (error) {
+                aiPreview.textContent = `Error: ${error.message}`;
+            } finally {
+                generatePreview.textContent = 'GENERATE PREVIEW';
+                generatePreview.disabled = false;
+            }
+        });
+
+        generateBatch.addEventListener('click', async function() {
+            const apiKey = openaiApiKey.value.trim();
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key first');
+                return;
+            }
+            
+            generateBatch.textContent = 'GENERATING BATCH...';
+            generateBatch.disabled = true;
+            
+            try {
+                const existingComments = await getExistingComments();
+                aiPreview.innerHTML = '<strong>Generating 5 comments...</strong><br><br>';
+                
+                for (let i = 0; i < 5; i++) {
+                    const comment = await generateAiComment(apiKey, existingComments);
+                    const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
+                    
+                    // Add to database
+                    await db.collection('comments').add({
+                        name: randomName,
+                        text: comment,
+                        timestamp: firebase.firestore.Timestamp.now(),
+                        status: 'approved',
+                        isAi: true,
+                        generatedAt: new Date().toISOString()
+                    });
+                    
+                    aiPreview.innerHTML += `${i + 1}. <strong>${randomName}:</strong> "${comment}"<br><br>`;
+                    
+                    // Small delay between generations
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                aiPreview.innerHTML += '<em>All comments added to database successfully!</em>';
+                loadComments();
+                loadStats();
+                
+            } catch (error) {
+                aiPreview.textContent = `Error: ${error.message}`;
+            } finally {
+                generateBatch.textContent = 'GENERATE 5 COMMENTS';
+                generateBatch.disabled = false;
+            }
+        });
+
+        analyzeExisting.addEventListener('click', async function() {
+            try {
+                analyzeExisting.textContent = 'ANALYZING...';
+                analyzeExisting.disabled = true;
+                
+                const existingComments = await getExistingComments();
+                
+                if (existingComments.length === 0) {
+                    aiPreview.textContent = 'No existing comments to analyze. Add some human comments first.';
+                    return;
+                }
+                
+                let analysis = '<strong>Analysis of Existing Comments:</strong><br><br>';
+                analysis += `<strong>Total Human Comments:</strong> ${existingComments.length}<br><br>`;
+                
+                // Sample recent comments
+                analysis += '<strong>Recent Visitor Voices:</strong><br>';
+                existingComments.slice(0, 5).forEach((comment, i) => {
+                    analysis += `${i + 1}. "${comment.text}"<br>`;
+                });
+                
+                analysis += '<br><em>AI will learn from these authentic responses to generate similar visitor comments.</em>';
+                
+                aiPreview.innerHTML = analysis;
+                
+            } catch (error) {
+                aiPreview.textContent = `Error: ${error.message}`;
+            } finally {
+                analyzeExisting.textContent = 'ANALYZE EXISTING COMMENTS';
+                analyzeExisting.disabled = false;
+            }
+        });
+
+        // Auto-generation toggle
+        enableAiComments.addEventListener('click', async function() {
+            const apiKey = openaiApiKey.value.trim();
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key first');
+                return;
+            }
+            
+            if (aiInterval) {
+                // Disable auto-generation
+                clearInterval(aiInterval);
+                aiInterval = null;
+                enableAiComments.textContent = 'START AUTO GENERATION';
+                enableAiComments.style.background = '#00ff00';
+                enableAiComments.style.color = '#000';
+                aiPreview.innerHTML = 'Auto-generation stopped.';
+            } else {
+                // Enable auto-generation
+                const frequency = 30; // minutes
+                enableAiComments.textContent = 'STOP AUTO GENERATION';
+                enableAiComments.style.background = '#ff4444';
+                enableAiComments.style.color = '#fff';
+                aiPreview.innerHTML = `Auto-generation enabled! New comments will be generated every ${frequency} minutes.`;
+                
+                // Generate first comment immediately
+                generateAndPostAiComment();
+                
+                // Set interval for future comments
+                aiInterval = setInterval(generateAndPostAiComment, frequency * 60 * 1000);
+            }
+        });
+
+        // Generate and post AI comment automatically
+        async function generateAndPostAiComment() {
+            const api
+          // Generate and post AI comment automatically
+        async function generateAndPostAiComment() {
+            const apiKey = openaiApiKey.value.trim();
+            
+            try {
+                const existingComments = await getExistingComments();
+                const comment = await generateAiComment(apiKey, existingComments);
+                
+                // Random AI name
+                const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
+                
+                // Add to database
+                await db.collection('comments').add({
+                    name: randomName,
+                    text: comment,
+                    timestamp: firebase.firestore.Timestamp.now(),
+                    status: 'approved',
+                    isAi: true,
+                    generatedAt: new Date().toISOString()
+                });
+                
+                console.log('Auto-generated comment added:', comment);
+                
+                // Reload comments and stats
+                loadComments();
+                loadStats();
+                
+                // Update preview with latest auto-generated comment
+                const currentTime = new Date().toLocaleTimeString();
+                aiPreview.innerHTML += `<br>${currentTime}: Auto-generated "${comment}" by ${randomName}`;
+                
+            } catch (error) {
+                console.error('Error generating auto comment:', error);
+                aiPreview.innerHTML += `<br>Error generating auto comment: ${error.message}`;
+            }
+        }
+
+        // Add a test comment function for debugging
+        window.addTestComment = function() {
+            console.log('Adding test comment manually');
+            
+            const testComment = {
+                name: "Test User",
+                text: "This is a manual test comment added at " + new Date().toLocaleTimeString(),
+                timestamp: firebase.firestore.Timestamp.now(),
+                status: "approved"
+            };
+            
+            db.collection('comments').add(testComment)
+                .then(doc => {
+                    console.log(`Test comment added with ID: ${doc.id}`);
+                    loadComments();
+                    loadStats();
+                })
+                .catch(error => {
+                    console.log(`Error adding test comment: ${error.message}`);
+                });
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Admin panel loaded');
+            
+            // Auto-save settings when typing
+            openaiApiKey.addEventListener('change', saveSettings);
+            visitorPersonas.addEventListener('change', saveSettings);
+            atmosphericElements.addEventListener('change', saveSettings);
+        });
+    </script>
+</body>
+</html>
