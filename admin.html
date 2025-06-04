@@ -469,11 +469,12 @@
         const showHuman = document.getElementById('showHuman');
         const aiAnalysis = document.getElementById('aiAnalysis');
 
-        // Realistic visitor names - more authentic and diverse
+        // Realistic visitor names - contemporary art gallery visitors
         const visitorNames = [
             "Maya", "Alex", "Sam", "K", "Jo", "Riley", "Casey", "M.", "R.K.", "visitor47",
             "anon", "someone", "A.", "kim", "lee", "Pat", "sage", "river", "Sky", "Morgan",
-            "J.L.", "anonymous", "guest", "nina", "Kris", "Quinn", "Ash", "Dana", "Lou", "Sasha"
+            "J.L.", "anonymous", "guest", "nina", "Kris", "Quinn", "Ash", "Dana", "Lou", "Sasha",
+            "L.", "E.", "V.", "Zara", "Kai", "Finn", "Rae", "Blue", "Sage", "Wren"
         ];
 
         // AI generation state with randomized timing
@@ -486,107 +487,107 @@
         let allComments = [];
         let currentFilter = 'all';
 
-        // Real visitor reaction fragments from Schneider's Die Familie Schneider
+        // Visitor reaction fragments inspired by immersive art installations
         const realVisitorReactions = [
-            "a queasy sense of trepidation set in",
-            "I feel oddly abandoned by this",
-            "primitive fears of monsters under the bed",
-            "sickening sense of déjà vu",
-            "narrow corridors are claustrophobic", 
-            "grimy flock wallpaper choked the rooms",
-            "when is the last time you thought twice about letting a door swing shut",
-            "realised, with a shudder, that you were not alone",
-            "moving like a ghost revisiting the scene of its own murder",
-            "the silence between the walls is almost tangible",
-            "beside himself. He walks through the house next to himself",
-            "I keep thinking I've been in these rooms before",
-            "everything looks normal but feels wrong",
-            "the proportions of the rooms were not quite right",
-            "body somehow knew something wasn't right",
-            "immersion walked hand in hand with estrangement"
+            "feels like walking through someone else's dream",
+            "the uncanny feeling of being watched while watching",
+            "everything looks familiar but wrong somehow",
+            "like peering through windows you shouldn't see",
+            "the space holds its breath",
+            "domestic life as performance",
+            "can't tell what's real anymore",
+            "the silence between the screens",
+            "feels staged but also intimate",
+            "caught between voyeur and visitor",
+            "the unsettling comfort of repetition",
+            "boundaries blur here",
+            "simultaneously exposed and hidden",
+            "like being inside a memory that isn't mine",
+            "the digital made physical",
+            "privacy doesn't exist in this space"
         ];
 
-        // Diverse prompt templates based on real visitor reactions
+        // Diverse prompt templates for exhibition context
         const promptTemplates = [
             {
-                type: "initial_fear",
-                template: `You just entered an unsettling art installation. You're feeling nervous and uncertain. Write a 1-2 sentence visitor comment expressing immediate unease. Use simple, natural language. Focus on first impressions and physical sensations.`
+                type: "scaffold_observation",
+                template: `You're experiencing "You're Live to the World" - an exhibition with miniature homes displayed on scaffolding structures. Write a brief visitor comment about seeing these small domestic spaces elevated and exposed. Be natural and immediate.`
             },
             {
-                type: "spatial_confusion", 
-                template: `You're walking through rooms that feel familiar yet wrong. Write a brief comment about spatial disorientation and the feeling that proportions aren't quite right. Be conversational and personal.`
+                type: "watching_being_watched", 
+                template: `You're in an exhibition where you're simultaneously watching intimate domestic scenes and being watched yourself. Write about this feeling of being caught between observer and observed.`
             },
             {
-                type: "questioning",
-                template: `You're questioning your own perception and memory. Write a comment as a rhetorical question, wondering about what you're experiencing. Start with "When was the last time..." or "Why does..." or "How is it that..."`
+                type: "screen_domesticity",
+                template: `The exhibition shows domestic life through small screens and windows. Write about the relationship between real homes and the curated homes we see online. Keep it personal and brief.`
             },
             {
-                type: "body_response",
-                template: `Your body is reacting to this space before your mind catches up. Write about physical sensations - queasy feeling, trepidation, shuddering. Keep it immediate and visceral.`
+                type: "miniature_uncanny",
+                template: `You're looking at dollhouse-scale domestic scenes that feel both charming and unsettling. Write about the strange intimacy of observing miniaturized private life.`
             },
             {
-                type: "deja_vu",
-                template: `You're experiencing strong déjà vu or false memory. Write about feeling like you've been here before, or seeing the same thing twice. Express confusion about reality and memory.`
+                type: "performance_recognition",
+                template: `The exhibition makes you think about how much your own home life is performed for others. Write a comment recognizing this feeling. Be conversational.`
             },
             {
-                type: "isolation",
-                template: `You feel alone and abandoned in this space. Write about silence, emptiness, or being cut off from the outside world. Use words that convey solitude and disconnection.`
+                type: "green_screen_reality",
+                template: `You've just watched a live performance where someone stepped into a green screen domestic scene. Write about the blurring of reality and digital performance.`
             },
             {
-                type: "watching",
-                template: `You feel like you're being watched or observed. Write a brief comment about the feeling of eyes on you, or sensing invisible presence. Express subtle paranoia.`
+                type: "privacy_exposure",
+                template: `The exhibition explores privacy in the digital age. Write about the tension between wanting to share your life and protecting your private space.`
             },
             {
-                type: "fragments",
-                template: `Express your experience in short, fragmented thoughts. Write 2-4 word phrases separated by periods. Focus on immediate impressions: "The silence. The repetition. Can't shake it."`
+                type: "construction_metaphor",
+                template: `The scaffolding structure makes everything look temporary or under construction. Write about this feeling that nothing is permanent, everything is being built or rebuilt.`
             },
             {
-                type: "normality_wrong",
-                template: `Everything looks normal but feels completely wrong. Write about the uncanny gap between appearance and feeling. Contrast the ordinary with the unsettling.`
+                type: "social_media_reflection",
+                template: `The exhibition reminds you of the homes you see on social media. Write about the gap between online presentation and lived reality.`
             },
             {
-                type: "time_confusion",
-                template: `Time feels strange here - too slow, too fast, or suspended. Write about temporal disorientation or feeling stuck in a moment. Be poetic but grounded.`
+                type: "immersive_discomfort",
+                template: `You feel slightly uncomfortable but can't look away. Write about being drawn into something that unsettles you. Be honest about the discomfort.`
             },
             {
-                type: "escape_impulse",
-                template: `You want to leave but feel compelled to stay. Write about the tension between curiosity and fear, being drawn in despite unease. Express conflicted feelings.`
+                type: "home_as_stage",
+                template: `The exhibition presents home as a stage set. Write about realizing how much your own living space is arranged for others' eyes.`
             },
             {
-                type: "repetition",
-                template: `You're noticing disturbing repetitions or patterns. Write about seeing the same thing multiple times or feeling trapped in a loop. Express growing unease.`
+                type: "scale_disorientation",
+                template: `The miniature scale makes you feel like a giant observing tiny lives. Write about this shift in perspective and what it reveals.`
             },
             {
-                type: "memory_trigger",
-                template: `This place reminds you of somewhere from your past - childhood home, hospital, school. Write about unwanted memories or associations this space triggers.`
+                type: "digital_infrastructure",
+                template: `You can see all the cables and tech equipment that usually stays hidden. Write about this exposure of digital infrastructure.`
             },
             {
-                type: "ghost_feeling",
-                template: `You feel like a ghost moving through someone else's space. Write about feeling invisible, insubstantial, or like you don't belong here. Use ethereal language.`
+                type: "repetitive_actions",
+                template: `You notice the same domestic actions happening over and over on different screens. Write about the hypnotic or unsettling nature of this repetition.`
             },
             {
-                type: "rational_fear",
-                template: `Your rational mind is fighting primitive fear. Write about the struggle between logic and instinct, trying to stay calm while feeling increasingly uneasy.`
+                type: "intimate_distance",
+                template: `You feel close to something private but also completely distant from it. Write about this paradox of digital intimacy.`
             },
             {
-                type: "details_wrong",
-                template: `Small details feel off - shadows, sounds, textures. Write about noticing subtle wrongness in ordinary things. Focus on one specific detail that disturbs you.`
+                type: "silent_disco_experience",
+                template: `You're wearing headphones that sync you with other visitors' experiences. Write about this shared but private audio experience.`
             },
             {
-                type: "breath_space",
-                template: `The air feels thick, stale, or hard to breathe. Write about atmospheric pressure, claustrophobia, or feeling suffocated. Use sensory language.`
+                type: "wizard_oz_reference",
+                template: `The exhibition title references "Pay No Attention to the Human Behind the Curtain." Write about what's been revealed that was meant to stay hidden.`
             },
             {
-                type: "conversation",
-                template: `Write as if talking to a friend about this experience. Use casual language: "I swear..." "You know when..." "It's like..." Keep it conversational and relatable.`
+                type: "lockdown_recognition",
+                template: `The exhibition reminds you of how home changed during Covid - becoming workplace, studio, stage. Write about this recognition.`
             },
             {
-                type: "art_student",
-                template: `You're an art student trying to analyze what you're experiencing. Write about the work's effect on you while struggling to maintain critical distance. Balance analysis with emotion.`
+                type: "gallery_reflection",
+                template: `Write as someone who visits galleries regularly, commenting on how this exhibition compares to other contemporary art you've seen. Be thoughtful but not academic.`
             },
             {
-                type: "tourist_brief",
-                template: `You're a tourist with limited time, quickly moving through. Write a rushed impression - immediate, surface-level but still affected. Use present tense urgency.`
+                type: "first_time_visitor",
+                template: `Write as someone who doesn't usually visit art exhibitions, expressing genuine confusion or curiosity about what you're experiencing.`
             }
         ];
 
@@ -851,7 +852,7 @@
         async function generateAiComment(apiKey) {
             localStorage.setItem('openaiApiKey', apiKey);
             
-                // Reset used prompts if we've used them all
+            // Reset used prompts if we've used them all
             if (usedPrompts.length >= promptTemplates.length) {
                 usedPrompts = [];
             }
@@ -861,7 +862,7 @@
             const selectedPrompt = availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
             
             // Track used prompts
-            usedPrompts.push(selectedPrompt.type);
+             usedPrompts.push(selectedPrompt.type);
             if (usedPrompts.length > promptTemplates.length / 2) {
                 usedPrompts.shift(); // Remove oldest
             }
@@ -870,18 +871,21 @@
             const reactionContext = realVisitorReactions[Math.floor(Math.random() * realVisitorReactions.length)];
             
             const enhancedPrompt = `
-Context: You are visiting "Collective Domain", an immersive art exhibition that creates psychological spaces similar to Gregor Schneider's work. 
+Context: You are visiting "You're Live to the World", an immersive art exhibition featuring miniature domestic spaces on scaffolding structures, live green screen performances, and reflections on digital domesticity in the post-pandemic era.
+
+The exhibition explores themes similar to Gregor Schneider's psychological installations, examining how our homes have become stages for digital performance.
 
 Reference feeling: "${reactionContext}"
 
 ${selectedPrompt.template}
 
 Requirements:
-- Write naturally, as a real visitor would
+- Write naturally, as a real gallery visitor would
 - 1-2 sentences maximum
-- No academic art jargon
-- Personal and immediate
-- Avoid mentioning the exhibition title directly
+- Use casual, conversational language
+- Be personal and immediate
+- Focus on your genuine reaction to the space
+- Avoid art jargon or overly academic language
 
 Your comment:`;
 
@@ -896,7 +900,7 @@ Your comment:`;
                     messages: [
                         { 
                             role: "system", 
-                            content: "You are a museum visitor writing an immediate, honest reaction. Be authentic, vulnerable, and human. Avoid clichés and art-speak."
+                            content: "You are a contemporary art gallery visitor writing an authentic, immediate reaction. Be natural, honest, and human. Avoid clichés and art-speak. Write as if texting a friend about what you just experienced."
                         },
                         { role: "user", content: enhancedPrompt }
                     ],
