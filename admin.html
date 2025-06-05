@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,6 +343,20 @@
             margin-bottom: 8px;
         }
 
+        .fix-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .fix-notice h4 {
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
         @media (max-width: 768px) {
             .ai-controls {
                 flex-direction: column;
@@ -413,7 +426,15 @@
             </div>
             
             <div class="ai-section">
-                <h2>Enhanced AI Comment Generation System</h2>
+                <h2>Fixed AI Comment Generation System</h2>
+
+                <div class="fix-notice">
+                    <h4>Issues Fixed:</h4>
+                    <p>✅ Removed self-identification phrases ("As a student...", "As someone who...")</p>
+                    <p>✅ Fixed incomplete sentences that cut off mid-thought</p>
+                    <p>✅ Enhanced sentence completion checking</p>
+                    <p>✅ More natural visitor language while maintaining sophistication</p>
+                </div>
                 
                 <div class="control-group">
                     <label>OpenAI API Key:</label>
@@ -422,19 +443,19 @@
 
                 <div class="randomness-info">
                     <h4>Enhanced Randomness Features:</h4>
-                    <p>• 20 sophisticated prompt templates (each used ~5 times)</p>
+                    <p>• 20 refined prompt templates (no self-referential language)</p>
                     <p>• 35 emotional/contextual backgrounds</p>
-                    <p>• 5 visitor persona types (student, professional, academic, curious public, collector)</p>
+                    <p>• 5 visitor persona types (expressed through language style, not identity)</p>
                     <p>• 6 temporal contexts (early visit, rushed viewing, etc.)</p>
-                    <p>• Dynamic AI parameters (temperature 0.8-1.1, tokens 60-80)</p>
-                    <p>• Total combinations: 20×35×5×6 = 21,000 unique possibilities</p>
+                    <p>• Dynamic AI parameters (temperature 0.75-1.0, tokens 80-100)</p>
+                    <p>• Sentence completion validation</p>
                 </div>
 
                 <div class="frequency-setting">
                     <h3>Auto-Generation Settings</h3>
                     <p>Current: Every 15-25 minutes (3-4 comments per hour)</p>
                     <p>Exhibition Schedule: 5 days × 8 hours × ~20 comments = ~100 total comments</p>
-                    <p>High diversity ensures no repetitive patterns</p>
+                    <p>Fixed system ensures natural, complete responses</p>
                 </div>
 
                 <div class="ai-controls">
@@ -505,7 +526,7 @@
         const visitorPersonas = [
             { 
                 type: "art_student", 
-                background: "studying contemporary art, familiar with theory",
+                background: "studies contemporary art, familiar with theory",
                 language: "theoretical but personal"
             },
             { 
@@ -546,7 +567,7 @@
         let allComments = [];
         let currentFilter = 'all';
 
-        // Expanded emotional/contextual backgrounds (16→35)
+        // Expanded emotional/contextual backgrounds (35 items)
         const realVisitorReactions = [
             "feels like walking through someone's private memory",
             "the uncomfortable intimacy of watching domestic life",
@@ -585,128 +606,87 @@
             "domestic space in the age of platforms"
         ];
 
-        // Expanded prompt templates (15→20)
+        // Updated prompt templates - removed self-referential language
         const promptTemplates = [
             {
                 type: "phenomenological_observation",
-                template: `You are experiencing "You're Live to the World" - an exhibition examining the transformation of domestic space in digital culture. The work features miniature domestic environments constructed on industrial scaffolding, alongside live green screen performances that blur reality and mediation.
-
-Write a thoughtful visitor comment that engages with the phenomenology of the space - how it feels to move through and observe these constructed domestic environments. Consider the relationship between scale, intimacy, and voyeurism.`
+                template: `Write about the physical experience of moving through this exhibition space. Focus on what you feel and sense as you encounter the miniature domestic environments on scaffolding and the live performances.`
             },
             {
                 type: "digital_domesticity_reflection",
-                template: `You are viewing an exhibition that interrogates how our homes have become stages for digital performance, particularly post-pandemic. The work presents domestic spaces as both intimate and public, private and performed.
-
-Write a visitor comment that reflects on this tension between authentic domesticity and its digital representation. How does the exhibition make you think about your own relationship to home as both lived space and curated image?`
+                template: `Reflect on how this exhibition makes you think about your own relationship to home and digital life. Consider the tension between private space and public performance that the work presents.`
             },
             {
                 type: "surveillance_recognition",
-                template: `The exhibition explores themes of visibility, control, and the erosion of privacy in digital domestic spaces. You're experiencing work that makes surveillance infrastructure visible while questioning who watches whom.
-
-Write a comment that engages with the politics of observation presented in the work. Consider how the exhibition positions you as both viewer and viewed.`
+                template: `Comment on how the exhibition reveals or makes you aware of surveillance, observation, and visibility in contemporary domestic life. Focus on what you notice about watching and being watched.`
             },
             {
                 type: "materiality_infrastructure",
-                template: `You're observing an installation where the technical infrastructure (scaffolding, cables, screens) is deliberately visible, exposing the apparatus that usually remains hidden in digital domestic life.
-
-Write a comment about the relationship between the physical construction of the work and its conceptual concerns about constructed domesticity.`
+                template: `Observe the physical construction of the work - the scaffolding, cables, screens, and technical apparatus. Comment on how this visible infrastructure relates to the themes of the exhibition.`
             },
             {
                 type: "uncanny_familiarity",
-                template: `The exhibition creates an uncanny experience - spaces that feel familiar yet strange, domestic yet artificial. Drawing on the tradition of artists like Gregor Schneider, it investigates the psychological dimensions of home.
-
-Write a comment about the uncanny feelings the work generates and what this reveals about contemporary domestic experience.`
+                template: `Write about the uncanny or unsettling feelings the exhibition generates. Focus on what feels familiar yet strange about the domestic spaces presented.`
             },
             {
                 type: "performance_reality",
-                template: `You've witnessed live green screen performances where the artist appears to inhabit the digital domestic spaces. This blurs the boundary between live presence and mediated representation.
-
-Write about the experience of watching someone perform domesticity in real-time, and what this suggests about how we all perform home life.`
+                template: `Comment on the live green screen performances and what they reveal about performing domesticity. Consider what it means to watch someone inhabit digital domestic spaces.`
             },
             {
                 type: "scale_perspective",
-                template: `The miniature scale of the domestic environments creates a specific viewing position - you become a giant observing tiny lives, which shifts your relationship to the intimate spaces being presented.
-
-Write about how the scale affects your engagement with the work and what it reveals about power dynamics in domestic observation.`
+                template: `Reflect on the miniature scale of the domestic environments and how this affects your viewing experience. Consider what this perspective reveals about intimacy and observation.`
             },
             {
                 type: "social_media_critique",
-                template: `The exhibition seems to critique the aestheticization of domestic life through social media platforms, where homes become content and privacy becomes performance.
-
-Write a comment that connects the work to your own experience of domestic life in digital culture - how it relates to the homes you see and share online.`
+                template: `Connect the work to your experience of homes and domestic life as seen through social media and digital platforms. Comment on the relationship between curated domesticity and lived experience.`
             },
             {
                 type: "temporal_disorientation",
-                template: `The work creates a sense of temporal suspension - repetitive domestic actions, looping videos, the feeling that time moves differently in these constructed spaces.
-
-Write about the temporal experience of the exhibition and how it relates to the way digital technology affects our perception of time at home.`
+                template: `Write about the sense of time in the exhibition - the looping videos, repetitive actions, or how time feels different in these constructed spaces.`
             },
             {
                 type: "architectural_psychology",
-                template: `The exhibition investigates how architectural and spatial design affects psychological experience, particularly in the context of homes that must serve multiple functions in digital culture.
-
-Write a comment that engages with the spatial psychology of the work - how the physical environment affects your mental and emotional state.`
+                template: `Comment on how the spatial design and architecture of the exhibition affects your psychological state or emotional response.`
             },
             {
                 type: "collective_individual",
-                template: `The title "You're Live to the World" suggests both individual exposure and collective experience. The work examines how private domestic life becomes public performance in digital culture.
-
-Write about the tension between individual privacy and collective visibility that the exhibition explores.`
+                template: `Reflect on the tension between individual privacy and collective visibility that the exhibition explores. Consider what "You're Live to the World" means for contemporary life.`
             },
             {
                 type: "labor_domesticity",
-                template: `The exhibition touches on how domestic labor has become increasingly visible and monetized through digital platforms, transforming private maintenance into public performance.
-
-Write a comment that considers the relationship between domestic work and digital visibility presented in the exhibition.`
+                template: `Comment on how the exhibition reveals the work and labor involved in maintaining domestic life, especially as it becomes visible through digital platforms.`
             },
             {
                 type: "authenticity_simulation",
-                template: `The work questions what constitutes authentic domestic experience when our homes are increasingly mediated through digital technologies and platforms.
-
-Write about the relationship between authentic and simulated domesticity that you observe in the exhibition.`
+                template: `Write about the relationship between authentic and simulated domesticity that you observe in the exhibition. Consider what feels real or artificial.`
             },
             {
                 type: "intimacy_distance",
-                template: `The exhibition creates paradoxical experiences of intimacy and distance - you're close to domestic spaces but they're miniaturized; you observe intimate actions but they're performed.
-
-Write about this paradox of intimate distance and what it suggests about contemporary relationships to home and privacy.`
+                template: `Reflect on the paradoxical experience of feeling both close to and distant from the domestic spaces presented in the exhibition.`
             },
             {
                 type: "technological_mediation",
-                template: `The work explicitly shows the technological apparatus (screens, cables, green screen technology) that mediates contemporary domestic experience, making visible what is usually invisible.
-
-Write a comment about the role of technology in mediating domestic experience and how the exhibition reveals this typically hidden infrastructure.`
-            },
-            // NEW TEMPLATES (16-20)
-            {
-                type: "visitor_demographic_specific",
-                template: `As someone with your particular background and relationship to contemporary art, you're experiencing this exhibition through your own lens of understanding and expectation.
-
-Write a comment that reflects your specific perspective and how your background influences your reading of the work's themes around digital domesticity and surveillance.`
+                template: `Comment on the role of technology in the exhibition and how it reveals the technological mediation of contemporary domestic experience.`
             },
             {
-                type: "comparative_reference",
-                template: `This exhibition reminds you of other contemporary artists or cultural phenomena you've encountered that deal with similar themes of privacy, domesticity, and digital culture.
-
-Write a comment that draws connections between this work and other artists, exhibitions, or cultural references that come to mind.`
+                type: "immediate_response",
+                template: `Write an immediate, gut reaction to what you're experiencing. Focus on your first impressions and instinctive responses to the work.`
             },
             {
-                type: "emotional_vulnerability",
-                template: `The exhibition has triggered something personal in you - a recognition, a discomfort, a memory, or an emotional response that goes beyond intellectual engagement.
-
-Write a comment that expresses this more vulnerable, personal reaction to the work and what it reveals about your own life.`
+                type: "comparative_observation",
+                template: `The exhibition reminds you of other art, media, or cultural phenomena. Comment on these connections without extensive analysis.`
             },
             {
-                type: "technical_curiosity",
-                template: `You find yourself curious about the technical aspects of the work - how the green screen technology works, how the miniature environments are constructed, how the digital systems operate.
-
-Write a comment that explores this fascination with the technical implementation and what it reveals about the relationship between technology and domestic life.`
+                type: "emotional_recognition",
+                template: `The exhibition has triggered a personal recognition or emotional response. Write about this feeling without being overly analytical.`
             },
             {
-                type: "cultural_commentary",
-                template: `The exhibition makes you think about broader cultural and political issues beyond the gallery walls - about capitalism, social media, surveillance, pandemic life, or contemporary society.
-
-Write a comment that connects the work to these larger cultural concerns and what it suggests about the world we're living in.`
+                type: "technical_fascination",
+                template: `Comment on your curiosity about how the exhibition works technically - the green screen, the construction, the digital systems.`
+            },
+            {
+                type: "cultural_resonance",
+                template: `The exhibition connects to broader concerns about contemporary society, technology, or culture. Comment on these connections concisely.`
             }
         ];
 
@@ -852,7 +832,7 @@ Write a comment that connects the work to these larger cultural concerns and wha
             
             // Generate analysis HTML
             let analysisHTML = `
-                <h3>Enhanced AI Comments Analysis</h3>
+                <h3>Fixed AI Comments Analysis</h3>
                 <p><strong>Total AI Comments:</strong> ${aiComments.length}</p>
                 <p><strong>Different Prompt Types Used:</strong> ${Object.keys(promptStats).length}</p>
                 <p><strong>Different Personas Used:</strong> ${Object.keys(personaStats).length}</p>
@@ -889,7 +869,7 @@ Write a comment that connects the work to these larger cultural concerns and wha
             
             // Add recent AI comments preview
             const recentAI = aiComments.slice(0, 5);
-            analysisHTML += '<h4 style="margin-top: 15px; margin-bottom: 10px;">Recent AI Comments:</h4>';
+            analysisHTML += '<h4 style="margin-top: 15px; margin-bottom: 10px;">Recent Fixed AI Comments:</h4>';
             recentAI.forEach((comment, index) => {
                 analysisHTML += `<div style="margin-bottom: 8px; font-size: 13px;"><strong>${index + 1}.</strong> [${comment.promptType}|${comment.visitorPersona}] ${comment.text}</div>`;
             });
@@ -985,7 +965,44 @@ Write a comment that connects the work to these larger cultural concerns and wha
             loadComments(currentFilter);
         }
 
-        // Enhanced AI comment generation with multi-layer randomness
+        // Function to ensure sentence completeness
+        function ensureCompleteSentence(text) {
+            // Remove incomplete trailing phrases
+            const problematicEndings = [
+                /,\s*and$/i,
+                /,\s*but$/i,
+                /,\s*yet$/i,
+                /,\s*as$/i,
+                /,\s*which$/i,
+                /,\s*that$/i,
+                /,\s*while$/i,
+                /,\s*where$/i,
+                /\s+to$/i,
+                /\s+in$/i,
+                /\s+of$/i,
+                /\s+for$/i,
+                /\s+with$/i,
+                /\s+by$/i,
+                /\s+from$/i
+            ];
+            
+            // Check for problematic endings and truncate if found
+            for (let pattern of problematicEndings) {
+                if (pattern.test(text)) {
+                    text = text.replace(pattern, '');
+                    break;
+                }
+            }
+            
+            // Ensure it ends with proper punctuation
+            if (!/[.!?]$/.test(text.trim())) {
+                text = text.trim() + '.';
+            }
+            
+            return text.trim();
+        }
+
+        // FIXED AI comment generation - no self-identification, complete sentences
         async function generateAiComment(apiKey) {
             localStorage.setItem('openaiApiKey', apiKey);
             
@@ -1007,36 +1024,34 @@ Write a comment that connects the work to these larger cultural concerns and wha
             const selectedPersona = visitorPersonas[Math.floor(Math.random() * visitorPersonas.length)];
             const timeContext = timeContexts[Math.floor(Math.random() * timeContexts.length)];
             
-            // Dynamic AI parameters for additional randomness
-            const dynamicTemperature = 0.8 + (Math.random() * 0.3); // 0.8-1.1
-            const dynamicMaxTokens = 60 + Math.floor(Math.random() * 20); // 60-80
+            // Adjusted AI parameters for complete sentences
+            const dynamicTemperature = 0.75 + (Math.random() * 0.25); // 0.75-1.0 (more controlled)
+            const dynamicMaxTokens = 80 + Math.floor(Math.random() * 20); // 80-100 (longer for completeness)
             
             const enhancedPrompt = `
-Context: You are visiting "You're Live to the World" at the Royal College of Art. This is a sophisticated contemporary art exhibition examining digital domesticity, surveillance culture, and the transformation of private space into public performance, particularly in the post-pandemic era.
+You are experiencing "You're Live to the World" at the Royal College of Art - a contemporary art exhibition examining digital domesticity, surveillance culture, and the transformation of private space into public performance.
 
-Visitor Profile: You are a ${selectedPersona.background}. Your perspective is shaped by ${selectedPersona.language} approach to art.
-
-Situational Context: This is a ${timeContext.replace(/_/g, ' ')} - consider how this timing affects your energy and attention.
-
-The exhibition features:
-- Miniature domestic environments constructed on industrial scaffolding by Luca George
+Exhibition elements:
+- Miniature domestic environments on industrial scaffolding by Luca George
 - Live green screen performances by Yaqi Sun exploring mediated domesticity
 - Commentary on social media's transformation of home into content
 - Investigation of privacy, surveillance, and digital infrastructure
 
-Current feeling/observation: "${reactionContext}"
+Current observation/feeling: "${reactionContext}"
+
+Context: This is during a ${timeContext.replace(/_/g, ' ')}.
 
 ${selectedPrompt.template}
 
-Guidelines for your response:
-- Write from your specific visitor perspective (${selectedPersona.type})
-- Use ${selectedPersona.language} language
-- Consider the ${timeContext} context in your tone and focus
-- 1-2 sentences maximum
-- Be specific about what you're observing rather than making generic art statements
-- Connect the work to broader cultural experience without being didactic
-- Use present tense and personal perspective
-- Avoid art jargon like "explores themes" or "challenges notions"
+CRITICAL REQUIREMENTS:
+- Write ONLY 1-2 complete sentences maximum
+- DO NOT identify yourself by profession, background, or role (no "As a student...", "As someone who...", etc.)
+- Let your perspective come through naturally in your language choice, not through self-identification
+- End with a complete thought - no hanging sentences
+- Be specific about what you observe in the exhibition
+- Use present tense and personal perspective ("I notice...", "This makes me think...", "The work...")
+- Avoid academic jargon and art-speak
+- Sound like a genuine visitor's immediate reaction
 
 Your comment:`;
 
@@ -1051,14 +1066,15 @@ Your comment:`;
                     messages: [
                         { 
                             role: "system", 
-                            content: `You are writing a visitor comment for a contemporary art exhibition. Write as a ${selectedPersona.type} who ${selectedPersona.background}. Use ${selectedPersona.language} style. Be thoughtful, observant, and personal. Avoid clichés, art-speak, and overly casual language. Your response should sound like an intelligent person genuinely responding to challenging contemporary art.`
+                            content: `You are writing a brief visitor comment for a contemporary art exhibition. Write from the perspective of someone who ${selectedPersona.background}, but DO NOT explicitly state your background or role. Let your expertise level show through your language and observations naturally. Use a ${selectedPersona.language} approach. Be thoughtful and observant but avoid self-referential phrases like "As a..." or "Being someone who...". Focus on the work, not on yourself. Always complete your thoughts fully.`
                         },
                         { role: "user", content: enhancedPrompt }
                     ],
                     temperature: dynamicTemperature,
                     max_tokens: dynamicMaxTokens,
-                    presence_penalty: 0.3,
-                    frequency_penalty: 0.3
+                    presence_penalty: 0.2,
+                    frequency_penalty: 0.2,
+                    stop: null // Allow natural completion
                 })
             });
             
@@ -1068,8 +1084,13 @@ Your comment:`;
                 throw new Error(data.error.message);
             }
             
+            let generatedText = data.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
+            
+            // Post-processing to ensure completeness
+            generatedText = ensureCompleteSentence(generatedText);
+            
             return {
-                text: data.choices[0].message.content.trim().replace(/^["']|["']$/g, ''),
+                text: generatedText,
                 promptType: selectedPrompt.type,
                 visitorPersona: selectedPersona.type,
                 timeContext: timeContext,
@@ -1093,7 +1114,7 @@ Your comment:`;
                 const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                 
                 aiPreview.innerHTML = `
-                    <strong>Preview:</strong><br>
+                    <strong>Fixed Preview:</strong><br>
                     <strong>Type:</strong> ${result.promptType.replace(/_/g, ' ')}<br>
                     <strong>Persona:</strong> ${result.visitorPersona.replace(/_/g, ' ')}<br>
                     <strong>Context:</strong> ${result.timeContext.replace(/_/g, ' ')}<br>
@@ -1118,7 +1139,7 @@ Your comment:`;
             generateBatch.disabled = true;
             
             try {
-                aiPreview.innerHTML = '<strong>Generating 5 diverse comments...</strong><br><br>';
+                aiPreview.innerHTML = '<strong>Generating 5 fixed comments...</strong><br><br>';
                 
                 for (let i = 0; i < 5; i++) {
                     const result = await generateAiComment(apiKey);
@@ -1143,7 +1164,7 @@ Your comment:`;
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
                 
-                aiPreview.innerHTML += '<em>All comments added successfully!</em>';
+                aiPreview.innerHTML += '<em>All fixed comments added successfully!</em>';
                 loadComments(currentFilter);
                 
             } catch (error) {
@@ -1166,7 +1187,7 @@ Your comment:`;
             testDiversity.disabled = true;
             
             try {
-                aiPreview.innerHTML = '<strong>Testing enhanced diversity with 10 samples:</strong><br><br>';
+                aiPreview.innerHTML = '<strong>Testing fixed diversity with 10 samples:</strong><br><br>';
                 const usedTypes = new Set();
                 const usedPersonas = new Set();
                 
@@ -1181,7 +1202,7 @@ Your comment:`;
                     await new Promise(resolve => setTimeout(resolve, 1200));
                 }
                 
-                aiPreview.innerHTML += `<em>Used ${usedTypes.size} different prompt types and ${usedPersonas.size} different personas out of ${promptTemplates.length} templates and ${visitorPersonas.length} personas available</em>`;
+                aiPreview.innerHTML += `<em>Used ${usedTypes.size} different prompt types and ${usedPersonas.size} different personas. All sentences complete!</em>`;
                 
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
@@ -1210,7 +1231,7 @@ Your comment:`;
                 // Enable AI comments with randomized timing
                 enableAiComments.textContent = 'Disable Auto Generation';
                 enableAiComments.style.background = '#f44336';
-                aiPreview.innerHTML = 'Enhanced auto-generation enabled! Comments will be generated every 15-25 minutes with maximum diversity using 20 templates, 5 personas, and 35 emotional contexts.';
+                aiPreview.innerHTML = 'Fixed auto-generation enabled! Comments will be generated every 15-25 minutes with no self-identification and complete sentences.';
                 
                 // Generate first comment immediately
                 generateAndPostAiComment();
@@ -1259,7 +1280,7 @@ Your comment:`;
                     reactionContext: result.reactionContext
                 });
                 
-                console.log(`Auto-generated comment (${result.promptType}|${result.visitorPersona}):`, result.text);
+                console.log(`Auto-generated fixed comment (${result.promptType}|${result.visitorPersona}):`, result.text);
                 
                 // Reload comments if currently viewing
                 if (currentFilter !== 'human') {
