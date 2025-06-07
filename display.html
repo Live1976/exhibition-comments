@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>What is happening in this house, I asked</title>
+    <title>What is happening in this house?</title>
     <style>
         * {
             margin: 0;
@@ -18,6 +18,7 @@
             color: #fff;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            height: 100vh;
         }
 
         .container {
@@ -126,8 +127,8 @@
         }
 
         .auto-scroll-indicator.paused {
-            background: rgba(255, 255, 255, 0.8);
-            color: #000;
+            background: rgba(255, 100, 100, 0.3);
+            color: #fff;
         }
 
         .loading {
@@ -146,23 +147,6 @@
             0%, 20% { content: "."; }
             40% { content: ".."; }
             60%, 100% { content: "..."; }
-        }
-
-        .debug-panel {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            padding: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 5px;
-            font-size: 12px;
-            color: #0f0;
-            max-width: 300px;
-            max-height: 200px;
-            overflow: auto;
-            z-index: 1000;
-            display: none;
         }
 
         .sync-status {
@@ -251,7 +235,7 @@
             border-radius: 3px;
         }
         
-        /* 新添加的样式 - 用于高亮新评论 */
+        /* New comment highlight */
         @keyframes highlight {
             0% { background-color: rgba(255, 255, 255, 0.2); }
             100% { background-color: transparent; }
@@ -263,10 +247,8 @@
     </style>
 </head>
 <body>
-    <div class="debug-panel" id="debugPanel"></div>
-    
     <div class="header">
-        <h1>What is happening in this house, I asked</h1>
+        <h1>What is happening in this house?</h1>
     </div>
     
     <div class="sync-status" id="syncStatus">WAITING FOR DATA</div>
@@ -305,58 +287,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // Debug mode (double tap top-right corner to toggle)
-        let debugMode = false;
-        let tapCount = 0;
-        let tapTimer = null;
-        
-        document.addEventListener('click', function(e) {
-            // Check if click is in top-right corner
-            if (e.clientX > window.innerWidth - 50 && e.clientY < 50) {
-                tapCount++;
-                
-                clearTimeout(tapTimer);
-                tapTimer = setTimeout(function() {
-                    tapCount = 0;
-                }, 500);
-                
-                if (tapCount >= 3) {
-                    debugMode = !debugMode;
-                    document.getElementById('debugPanel').style.display = debugMode ? 'block' : 'none';
-                    tapCount = 0;
-                    
-                    if (debugMode) {
-                        logDebug('Debug mode enabled');
-                        testFirebase();
-                    }
-                }
-            }
-        });
-        
-        function logDebug(message) {
-            if (debugMode) {
-                const debugPanel = document.getElementById('debugPanel');
-                debugPanel.innerHTML += message + '<br>';
-                debugPanel.scrollTop = debugPanel.scrollHeight;
-            }
-            console.log(message);
-        }
-        
-        function testFirebase() {
-            logDebug('Testing Firebase connection...');
-            
-            db.collection('comments').limit(1).get()
-                .then(snapshot => {
-                    logDebug(`Connection successful. Found ${snapshot.size} comments.`);
-                    if (snapshot.size > 0) {
-                        const doc = snapshot.docs[0];
-                        logDebug(`Sample comment: ${JSON.stringify(doc.data())}`);
-                    }
-                })
-                .catch(error => {
-                    logDebug(`Firebase error: ${error.message}`);
-                });
-        }
+        // Auto-scroll settings
+        let autoScroll = true;
+        let scrollSpeed = 0.5; // Pixels per frame
+        let scrollDirection = 1; // 1 for down, -1 for up
+        let scrollAnimationId = null;
+        let lastUserInteraction = Date.now();
+        let pauseAutoScrollAfterInteraction = 3000; // 3 seconds
         
         // Sync status indicator
         function updateSyncStatus(status, isError = false) {
@@ -369,30 +306,7 @@
             } else if (status === 'LIVE SYNC ACTIVE') {
                 statusElement.classList.add('active');
             }
-            
-            // Auto-hide sync status after 5 seconds if success
-            if (status === 'LIVE SYNC ACTIVE') {
-                setTimeout(() => {
-                    statusElement.style.opacity = '0';
-                    setTimeout(() => {
-                        // If the status hasn't changed, keep it hidden
-                        if (statusElement.textContent === 'LIVE SYNC ACTIVE') {
-                            statusElement.style.display = 'none';
-                        }
-                    }, 1000);
-                }, 5000);
-            } else {
-                // Make sure it's visible for other statuses
-                statusElement.style.opacity = '0.8';
-                statusElement.style.display = 'block';
-            }
         }
-        
-        // Auto-scroll settings
-        let autoScroll = true;
-        let scrollSpeed = 1;
-        let scrollInterval;
-        let lastScrollTime = Date.now();
         
         // Format time
         function formatTime(timestamp) {
@@ -400,13 +314,10 @@
             
             let date;
             if (timestamp.toDate) {
-                // Firestore Timestamp
                 date = timestamp.toDate();
             } else if (timestamp instanceof Date) {
-                // JavaScript Date
                 date = timestamp;
             } else {
-                // Assume it's a number or string representing milliseconds
                 date = new Date(timestamp);
             }
             
@@ -423,9 +334,8 @@
             return date.toLocaleDateString();
         }
         
-        // Get comment text (handling different field names)
+        // Get comment text
         function getCommentText(comment) {
-            // Try different field names that might contain the comment text
             return comment.text || comment.content || comment.message || comment.comment || '(No content)';
         }
         
@@ -434,32 +344,26 @@
             const commentsWrapper = document.getElementById('commentsWrapper');
             const loadingElement = document.getElementById('loading');
             
-            // 隐藏加载提示
             if (loadingElement) {
                 loadingElement.style.display = 'none';
             }
             
-            // 检查是否有评论
             if (!comments || comments.length === 0) {
                 commentsWrapper.innerHTML = '<div class="empty">WAITING FOR THE FIRST COMMENT</div>';
                 document.getElementById('commentCount').textContent = '0';
                 return;
             }
             
-            // 更新评论计数
             document.getElementById('commentCount').textContent = comments.length;
             
-            // 创建HTML内容
             let html = '';
             comments.forEach((comment, index) => {
                 const commentText = getCommentText(comment);
                 const timestamp = formatTime(comment.timestamp);
                 
-                // 标记新评论，若此评论的时间在最近10秒内
                 const isNew = comment.timestamp && 
                               ((Date.now() - comment.timestamp.toDate().getTime()) < 10000);
                 
-                // 为新评论添加特殊类名
                 const newCommentClass = isNew ? 'comment new-comment' : 'comment';
                 
                 html += `
@@ -471,223 +375,54 @@
                 `;
             });
             
-            // 更新DOM
             commentsWrapper.innerHTML = html;
-            
-            // 添加调试信息
-            logDebug(`Rendered ${comments.length} comments at ${new Date().toLocaleTimeString()}`);
         }
         
-        // Live unsubscribe function
-        let unsubscribe = null;
-        
-        // Load comments from Firebase with real-time updates - 更新的实时监听函数
-        function setupRealTimeComments() {
-            updateSyncStatus('CONNECTING...');
-            logDebug('Setting up real-time comments...');
-            
-            // 取消之前的监听器
-            if (unsubscribe) {
-                unsubscribe();
-                unsubscribe = null;
-                logDebug('Unsubscribed from previous listener');
-            }
-            
-            try {
-                // 使用实时监听
-                unsubscribe = db.collection('comments')
-                    .orderBy('timestamp', 'desc')
-                    .onSnapshot(snapshot => {
-                        updateSyncStatus('LIVE SYNC ACTIVE');
-                        logDebug(`Received snapshot with ${snapshot.size} comments at ${new Date().toLocaleTimeString()}`);
-                        
-                        // 检查是否有文档变更
-                        const changes = snapshot.docChanges();
-                        logDebug(`Detected ${changes.length} changes in this update`);
-                        
-                        if (changes.length > 0) {
-                            // 有变更，处理所有评论
-                            const comments = [];
-                            snapshot.forEach(doc => {
-                                const data = doc.data();
-                                // 只包含已批准的评论
-                                if (data.status === 'approved') {
-                                    // 添加文档ID作为评论ID方便追踪
-                                    comments.push({
-                                        ...data,
-                                        id: doc.id
-                                    });
-                                }
-                            });
-                            
-                            // 按时间戳排序（确保最新的在前面）
-                            comments.sort((a, b) => {
-                                const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
-                                const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
-                                return timeB - timeA;
-                            });
-                            
-                            // 渲染更新后的评论列表
-                            renderComments(comments);
-                        }
-                    }, error => {
-                        logDebug(`Realtime error: ${error.message}`);
-                        updateSyncStatus('SYNC ERROR: ' + error.message, true);
-                        
-                        // 出错时尝试直接加载评论
-                        loadCommentsDirect();
-                        
-                        // 5秒后尝试重新连接
-                        setTimeout(() => {
-                            logDebug('Attempting to reconnect...');
-                            setupRealTimeComments();
-                        }, 5000);
-                    });
-                
-                logDebug('Real-time listener successfully set up');
-            } catch (error) {
-                logDebug(`Error setting up listener: ${error.message}`);
-                updateSyncStatus('SETUP ERROR: ' + error.message, true);
-                
-                // 出错时使用直接查询方式
-                loadCommentsDirect();
-            }
-        }
-        
-        // 直接查询评论作为后备方案
-        function loadCommentsDirect() {
-            updateSyncStatus('TRYING DIRECT QUERY...');
-            logDebug('Loading comments directly...');
-            
-            db.collection('comments')
-                .where('status', '==', 'approved')
-                .orderBy('timestamp', 'desc')
-                .get()
-                .then(snapshot => {
-                    updateSyncStatus('USING DIRECT QUERY');
-                    
-                    if (snapshot.empty) {
-                        logDebug('No comments found in database.');
-                        renderComments([]);
-                        return;
-                    }
-                    
-                    const comments = [];
-                    snapshot.forEach(doc => {
-                        comments.push({
-                            ...doc.data(),
-                            id: doc.id
-                        });
-                    });
-                    
-                    logDebug(`Loaded ${comments.length} comments directly.`);
-                    renderComments(comments);
-                    
-                    // 启动轮询更新
-                    startPolling();
-                })
-                .catch(error => {
-                    updateSyncStatus('QUERY ERROR: ' + error.message, true);
-                    console.error('Error loading comments directly:', error);
-                    logDebug(`Direct loading error: ${error.message}`);
-                    document.getElementById('loading').textContent = 'Could not load comments: ' + error.message;
-                });
-        }
-        
-        // 轮询更新
-        let pollingInterval = null;
-        
-        function startPolling() {
-            logDebug('Starting polling for updates...');
-            updateSyncStatus('POLLING FOR UPDATES');
-            
-            // 清除现有轮询
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-            }
-            
-            // 每5秒轮询一次
-            pollingInterval = setInterval(() => {
-                logDebug('Polling for new comments...');
-                
-                db.collection('comments')
-                    .where('status', '==', 'approved')
-                    .orderBy('timestamp', 'desc')
-                    .get()
-                    .then(snapshot => {
-                        const comments = [];
-                        snapshot.forEach(doc => {
-                            comments.push({
-                                ...doc.data(),
-                                id: doc.id
-                            });
-                        });
-                        
-                        logDebug(`Polled ${comments.length} comments.`);
-                        renderComments(comments);
-                        
-                        // 定期尝试重新启用实时更新
-                        tryReenableRealtime();
-                    })
-                    .catch(error => {
-                        logDebug(`Polling error: ${error.message}`);
-                    });
-            }, 5000);
-        }
-        
-        // 尝试重新启用实时更新
-        let realtimeAttempts = 0;
-        
-        function tryReenableRealtime() {
-            realtimeAttempts++;
-            
-            // 每4次轮询（20秒）尝试一次重新启用实时更新
-            if (realtimeAttempts >= 4) {
-                realtimeAttempts = 0;
-                logDebug('Attempting to restore real-time updates...');
-                
-                // 暂停轮询
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
-                }
-                
-                // 尝试重新设置实时更新
-                setupRealTimeComments();
-            }
-        }
-        
-        // 自动滚动功能
-        function startAutoScroll() {
+        // Auto-scroll functionality
+        function performAutoScroll() {
             if (!autoScroll) return;
             
-            // 清除现有滚动间隔
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
+            // Check if user has interacted recently
+            if (Date.now() - lastUserInteraction < pauseAutoScrollAfterInteraction) {
+                scrollAnimationId = requestAnimationFrame(performAutoScroll);
+                return;
             }
             
-            scrollInterval = setInterval(() => {
-                // 如果用户最近互动过，暂停自动滚动
-                if (Date.now() - lastScrollTime > 3000) {
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const currentScroll = window.pageYOffset;
+            
+            if (scrollDirection === 1) {
+                // Scrolling down
+                if (currentScroll >= maxScroll - 10) {
+                    // Reached bottom, change direction
+                    scrollDirection = -1;
+                } else {
                     window.scrollBy(0, scrollSpeed);
-                    
-                    // 到达底部时回到顶部
-                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-                        setTimeout(() => {
-                            window.scrollTo({
-                                top: 0,
-                                behavior: 'smooth'
-                            });
-                        }, 3000);
-                    }
                 }
-            }, 30); // 更频繁的滚动间隔，更平滑的滚动
+            } else {
+                // Scrolling up
+                if (currentScroll <= 10) {
+                    // Reached top, change direction
+                    scrollDirection = 1;
+                } else {
+                    window.scrollBy(0, -scrollSpeed);
+                }
+            }
+            
+            scrollAnimationId = requestAnimationFrame(performAutoScroll);
+        }
+        
+        function startAutoScroll() {
+            if (scrollAnimationId) {
+                cancelAnimationFrame(scrollAnimationId);
+            }
+            scrollAnimationId = requestAnimationFrame(performAutoScroll);
         }
         
         function stopAutoScroll() {
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
-                scrollInterval = null;
+            if (scrollAnimationId) {
+                cancelAnimationFrame(scrollAnimationId);
+                scrollAnimationId = null;
             }
         }
         
@@ -705,48 +440,69 @@
                 stopAutoScroll();
             }
             
-            // Save preference to localStorage
             localStorage.setItem('autoScroll', autoScroll.toString());
         }
         
-        // 事件处理程序，用于手动滚动
-        let touchTimeout;
+        // Handle user interactions
+        function handleUserInteraction() {
+            lastUserInteraction = Date.now();
+        }
         
-        document.addEventListener('touchstart', () => {
-            lastScrollTime = Date.now();
+        // Add event listeners for user interactions
+        ['scroll', 'wheel', 'touchstart', 'touchmove', 'mousedown', 'mousemove', 'keydown'].forEach(event => {
+            document.addEventListener(event, handleUserInteraction, { passive: true });
+        });
+        
+        // Real-time comments setup
+        let unsubscribe = null;
+        
+        function setupRealTimeComments() {
+            updateSyncStatus('CONNECTING...');
             
-            if (autoScroll) {
-                stopAutoScroll();
-                clearTimeout(touchTimeout);
-                
-                // 5秒无交互后恢复自动滚动
-                touchTimeout = setTimeout(() => {
-                    if (autoScroll) {
-                        startAutoScroll();
-                    }
-                }, 5000);
+            if (unsubscribe) {
+                unsubscribe();
             }
-        });
+            
+            try {
+                unsubscribe = db.collection('comments')
+                    .where('status', '==', 'approved')
+                    .orderBy('timestamp', 'desc')
+                    .onSnapshot(snapshot => {
+                        updateSyncStatus('LIVE SYNC ACTIVE');
+                        
+                        const comments = [];
+                        snapshot.forEach(doc => {
+                            comments.push({
+                                ...doc.data(),
+                                id: doc.id
+                            });
+                        });
+                        
+                        renderComments(comments);
+                    }, error => {
+                        updateSyncStatus('SYNC ERROR: ' + error.message, true);
+                        console.error('Realtime error:', error);
+                        
+                        // Retry after 5 seconds
+                        setTimeout(() => {
+                            setupRealTimeComments();
+                        }, 5000);
+                    });
+            } catch (error) {
+                updateSyncStatus('SETUP ERROR: ' + error.message, true);
+                console.error('Setup error:', error);
+            }
+        }
         
-        document.addEventListener('wheel', () => {
-            lastScrollTime = Date.now();
-        });
-        
-        document.addEventListener('scroll', () => {
-            lastScrollTime = Date.now();
-        });
-        
-        // 点击按钮切换自动滚动
+        // Click handler for auto-scroll toggle
         document.getElementById('scrollIndicator').addEventListener('click', toggleAutoScroll);
         
-        // 加载并应用设置
-        function loadSettings() {
-            // 检查自动滚动偏好
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved auto-scroll preference
             const savedAutoScroll = localStorage.getItem('autoScroll');
             if (savedAutoScroll !== null) {
                 autoScroll = savedAutoScroll === 'true';
-                
-                // 更新UI以匹配
                 const indicator = document.getElementById('scrollIndicator');
                 if (!autoScroll) {
                     indicator.textContent = 'AUTO SCROLL: OFF';
@@ -754,141 +510,42 @@
                 }
             }
             
-            // 检查展示设置
-            db.collection('settings').doc('display')
-                .get()
-                .then(doc => {
-                    if (doc.exists) {
-                        logDebug('Display settings loaded from Firestore');
-                        const settings = doc.data();
-                        
-                        // 应用自动滚动设置
-                        if (settings.autoScroll !== undefined) {
-                            autoScroll = settings.autoScroll;
-                            const indicator = document.getElementById('scrollIndicator');
-                            
-                            if (autoScroll) {
-                                indicator.textContent = 'AUTO SCROLL: ON';
-                                indicator.classList.remove('paused');
-                            } else {
-                                indicator.textContent = 'AUTO SCROLL: OFF';
-                                indicator.classList.add('paused');
-                            }
-                        }
-                        
-                        // 应用其他设置
-                        if (settings.showAuthor === false) {
-                            document.querySelectorAll('.comment-author').forEach(el => {
-                                el.style.display = 'none';
-                            });
-                        }
-                        
-                        if (settings.showTimestamp === false) {
-                            document.querySelectorAll('.comment-time').forEach(el => {
-                                el.style.display = 'none';
-                            });
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading settings:', error);
-                });
-        }
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            logDebug('Page loaded, initializing...');
-            
-            // 设置实时更新，确保立即连接
+            // Start real-time comments
             setupRealTimeComments();
             
-            // 加载设置
-            loadSettings();
-            
-            // 如果启用，启动自动滚动
+            // Start auto-scroll if enabled
             if (autoScroll) {
-                startAutoScroll();
-            }
-            
-            // 监控设置变化
-            try {
-                db.collection('settings').doc('display')
-                    .onSnapshot(doc => {
-                        if (doc.exists) {
-                            const settings = doc.data();
-                            
-                            // 应用自动滚动设置
-                            if (settings.autoScroll !== undefined && autoScroll !== settings.autoScroll) {
-                                autoScroll = settings.autoScroll;
-                                
-                                if (autoScroll) {
-                                    document.getElementById('scrollIndicator').textContent = 'AUTO SCROLL: ON';
-                                    document.getElementById('scrollIndicator').classList.remove('paused');
-                                    startAutoScroll();
-                                } else {
-                                    document.getElementById('scrollIndicator').textContent = 'AUTO SCROLL: OFF';
-                                    document.getElementById('scrollIndicator').classList.add('paused');
-                                    stopAutoScroll();
-                                }
-                            }
-                        }
-                    }, error => {
-                        logDebug(`Settings listener error: ${error.message}`);
-                    });
-            } catch (error) {
-                logDebug(`Error setting up settings listener: ${error.message}`);
+                setTimeout(() => {
+                    startAutoScroll();
+                }, 2000); // Start after 2 seconds to let content load
             }
         });
         
-        // 处理可见性变化（当用户切换标签或最小化时）
+        // Handle visibility changes
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                // 页面隐藏
                 stopAutoScroll();
             } else {
-                // 页面再次可见
                 if (autoScroll) {
-                    startAutoScroll();
+                    setTimeout(() => {
+                        startAutoScroll();
+                    }, 1000);
                 }
                 
-                // 回到页面时，检查是否需要重新连接
                 if (!unsubscribe) {
-                    logDebug('Page visible again, trying to reconnect...');
                     setupRealTimeComments();
                 }
             }
         });
-
-        // 处理网络状态变化
+        
+        // Handle network changes
         window.addEventListener('online', () => {
-            logDebug('Network connection restored, reconnecting...');
             setupRealTimeComments();
         });
         
         window.addEventListener('offline', () => {
-            logDebug('Network connection lost');
             updateSyncStatus('OFFLINE', true);
         });
-
-        // 为调试添加测试评论功能
-        window.addTestComment = function() {
-            logDebug('Adding test comment');
-            
-            const testComment = {
-                name: "Test User",
-                text: "This is a test comment added at " + new Date().toLocaleTimeString(),
-                timestamp: firebase.firestore.Timestamp.now(),
-                status: "approved"
-            };
-            
-            db.collection('comments').add(testComment)
-                .then(doc => {
-                    logDebug(`Test comment added with ID: ${doc.id}`);
-                })
-                .catch(error => {
-                    logDebug(`Error adding test comment: ${error.message}`);
-                });
-        };
     </script>
 </body>
 </html>
