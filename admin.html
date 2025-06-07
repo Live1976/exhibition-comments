@@ -357,6 +357,20 @@
             margin-bottom: 8px;
         }
 
+        .length-notice {
+            background: #e1f5fe;
+            border: 1px solid #81d4fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .length-notice h4 {
+            color: #0277bd;
+            margin-bottom: 8px;
+        }
+
         @media (max-width: 768px) {
             .ai-controls {
                 flex-direction: column;
@@ -426,10 +440,19 @@
             </div>
             
             <div class="ai-section">
-                <h2>Fixed AI Comment Generation System</h2>
+                <h2>Shorter AI Comment Generation System</h2>
+
+                <div class="length-notice">
+                    <h4>New Length Optimization:</h4>
+                    <p>✅ Targeting 8-15 words per comment (previously 15-25)</p>
+                    <p>✅ Reduced max_tokens from 80-100 to 35-50</p>
+                    <p>✅ Enhanced conciseness prompts for punchier responses</p>
+                    <p>✅ Maintained sentence completeness and meaning</p>
+                    <p>✅ More immediate, twitter-like reactions while preserving depth</p>
+                </div>
 
                 <div class="fix-notice">
-                    <h4>Issues Fixed:</h4>
+                    <h4>Original Issues Still Fixed:</h4>
                     <p>✅ Removed self-identification phrases ("As a student...", "As someone who...")</p>
                     <p>✅ Fixed incomplete sentences that cut off mid-thought</p>
                     <p>✅ Enhanced sentence completion checking</p>
@@ -442,31 +465,31 @@
                 </div>
 
                 <div class="randomness-info">
-                    <h4>Enhanced Randomness Features:</h4>
-                    <p>• 20 refined prompt templates (no self-referential language)</p>
+                    <h4>Enhanced Randomness Features (Now Shorter):</h4>
+                    <p>• 20 refined prompt templates optimized for brevity</p>
                     <p>• 35 emotional/contextual backgrounds</p>
-                    <p>• 5 visitor persona types (expressed through language style, not identity)</p>
+                    <p>• 5 visitor persona types (expressed through concise language style)</p>
                     <p>• 6 temporal contexts (early visit, rushed viewing, etc.)</p>
-                    <p>• Dynamic AI parameters (temperature 0.75-1.0, tokens 80-100)</p>
-                    <p>• Sentence completion validation</p>
+                    <p>• Optimized AI parameters (temperature 0.8-1.0, tokens 35-50)</p>
+                    <p>• Sentence completion validation for shorter responses</p>
                 </div>
 
                 <div class="frequency-setting">
                     <h3>Auto-Generation Settings</h3>
                     <p>Current: Every 15-25 minutes (3-4 comments per hour)</p>
                     <p>Exhibition Schedule: 5 days × 8 hours × ~20 comments = ~100 total comments</p>
-                    <p>Fixed system ensures natural, complete responses</p>
+                    <p>Shorter system ensures punchy, complete responses</p>
                 </div>
 
                 <div class="ai-controls">
-                    <button id="generatePreview" class="save-btn">Generate Preview</button>
-                    <button id="generateBatch" class="save-btn">Generate 5 Comments</button>
+                    <button id="generatePreview" class="save-btn">Generate Short Preview</button>
+                    <button id="generateBatch" class="save-btn">Generate 5 Short Comments</button>
                     <button id="enableAiComments" style="background: #4CAF50;">Enable Auto Generation</button>
-                    <button id="testDiversity" class="save-btn">Test Diversity (10 samples)</button>
+                    <button id="testDiversity" class="save-btn">Test Short Diversity (10 samples)</button>
                 </div>
                 
                 <div class="ai-preview" id="aiPreview">
-                    AI-generated comments will appear here...
+                    Shorter AI-generated comments will appear here...
                 </div>
             </div>
         </div>
@@ -514,7 +537,7 @@
         const showHuman = document.getElementById('showHuman');
         const aiAnalysis = document.getElementById('aiAnalysis');
 
-        // Enhanced visitor names - more realistic contemporary art audience
+        // Enhanced visitor names
         const visitorNames = [
             "Anna", "James", "Sarah", "M", "Alex", "Claire", "Tom", "L.", "Emma", "David",
             "K", "Sophie", "Ben", "R.", "Lucy", "visitor_23", "Maya", "Sam", "E.", "Chris",
@@ -522,7 +545,7 @@
             "Ava", "Oliver", "Grace", "P.", "Mia", "visitor_47", "Ethan", "Chloe", "H.", "Leo"
         ];
 
-        // Visitor persona system for enhanced diversity
+        // Visitor persona system
         const visitorPersonas = [
             { 
                 type: "art_student", 
@@ -551,23 +574,23 @@
             }
         ];
 
-        // Temporal contexts for situational variety
+        // Temporal contexts
         const timeContexts = [
             "early_visit", "midday_reflection", "end_of_day", 
             "repeat_visitor", "rushed_viewing", "contemplative_moment"
         ];
 
-        // AI generation state with randomized timing
+        // AI generation state
         let aiInterval = null;
         let aiGeneratedCount = 0;
         let lastPromptUsed = null;
         let usedPrompts = [];
 
-        // Global variables for filtering
+        // Global variables
         let allComments = [];
         let currentFilter = 'all';
 
-        // Expanded emotional/contextual backgrounds (35 items)
+        // Emotional/contextual backgrounds
         const realVisitorReactions = [
             "feels like walking through someone's private memory",
             "the uncomfortable intimacy of watching domestic life",
@@ -606,87 +629,87 @@
             "domestic space in the age of platforms"
         ];
 
-        // Updated prompt templates - removed self-referential language
+        // Shorter prompt templates
         const promptTemplates = [
             {
-                type: "phenomenological_observation",
-                template: `Write about the physical experience of moving through this exhibition space. Focus on what you feel and sense as you encounter the miniature domestic environments on scaffolding and the live performances.`
+                type: "immediate_reaction",
+                template: `Give your immediate, gut reaction to this exhibition in 8-12 words. Focus on one striking observation about the miniature homes on scaffolding or the live performances.`
             },
             {
-                type: "digital_domesticity_reflection",
-                template: `Reflect on how this exhibition makes you think about your own relationship to home and digital life. Consider the tension between private space and public performance that the work presents.`
+                type: "uncanny_moment",
+                template: `In 8-12 words, describe the uncanny or unsettling feeling this exhibition gives you about watching domestic life.`
             },
             {
-                type: "surveillance_recognition",
-                template: `Comment on how the exhibition reveals or makes you aware of surveillance, observation, and visibility in contemporary domestic life. Focus on what you notice about watching and being watched.`
+                type: "surveillance_awareness",
+                template: `React in 8-12 words to how this exhibition makes you aware of being watched or watching others in digital life.`
             },
             {
-                type: "materiality_infrastructure",
-                template: `Observe the physical construction of the work - the scaffolding, cables, screens, and technical apparatus. Comment on how this visible infrastructure relates to the themes of the exhibition.`
+                type: "digital_domesticity",
+                template: `Comment in 8-12 words on how this exhibition relates to your own experience of home and social media.`
             },
             {
-                type: "uncanny_familiarity",
-                template: `Write about the uncanny or unsettling feelings the exhibition generates. Focus on what feels familiar yet strange about the domestic spaces presented.`
+                type: "performativity_observation",
+                template: `In 8-12 words, observe how the live green screen performances reveal something about performing daily life.`
             },
             {
-                type: "performance_reality",
-                template: `Comment on the live green screen performances and what they reveal about performing domesticity. Consider what it means to watch someone inhabit digital domestic spaces.`
+                type: "scale_intimacy",
+                template: `React in 8-12 words to the miniature scale of the domestic spaces and what this reveals about intimacy.`
             },
             {
-                type: "scale_perspective",
-                template: `Reflect on the miniature scale of the domestic environments and how this affects your viewing experience. Consider what this perspective reveals about intimacy and observation.`
-            },
-            {
-                type: "social_media_critique",
-                template: `Connect the work to your experience of homes and domestic life as seen through social media and digital platforms. Comment on the relationship between curated domesticity and lived experience.`
+                type: "infrastructure_visibility",
+                template: `Comment in 8-12 words on the visible scaffolding, cables, and technical apparatus of the exhibition.`
             },
             {
                 type: "temporal_disorientation",
-                template: `Write about the sense of time in the exhibition - the looping videos, repetitive actions, or how time feels different in these constructed spaces.`
+                template: `In 8-12 words, describe how time feels different in these constructed domestic spaces.`
+            },
+            {
+                type: "boundary_dissolution",
+                template: `React in 8-12 words to how public and private boundaries dissolve in this exhibition.`
+            },
+            {
+                type: "social_media_recognition",
+                template: `In 8-12 words, connect this exhibition to how homes appear on social media platforms.`
+            },
+            {
+                type: "voyeuristic_discomfort",
+                template: `Comment in 8-12 words on the uncomfortable feeling of watching these intimate domestic moments.`
+            },
+            {
+                type: "constructed_reality",
+                template: `In 8-12 words, observe how the exhibition reveals the constructed nature of domestic presentation.`
+            },
+            {
+                type: "digital_anxiety",
+                template: `React in 8-12 words to any anxiety or unease the exhibition creates about digital visibility.`
+            },
+            {
+                type: "materiality_contrast",
+                template: `Comment in 8-12 words on the contrast between the physical scaffolding and digital domestic spaces.`
+            },
+            {
+                type: "collective_loneliness",
+                template: `In 8-12 words, observe the loneliness or isolation visible in these connected domestic spaces.`
+            },
+            {
+                type: "performance_exhaustion",
+                template: `React in 8-12 words to the sense of exhaustion or labor in constantly performing domestic life.`
             },
             {
                 type: "architectural_psychology",
-                template: `Comment on how the spatial design and architecture of the exhibition affects your psychological state or emotional response.`
+                template: `Comment in 8-12 words on how the exhibition's spatial design affects your psychological state.`
             },
             {
-                type: "collective_individual",
-                template: `Reflect on the tension between individual privacy and collective visibility that the exhibition explores. Consider what "You're Live to the World" means for contemporary life.`
+                type: "platform_critique",
+                template: `In 8-12 words, observe how the exhibition critiques social media platforms and domestic content.`
             },
             {
-                type: "labor_domesticity",
-                template: `Comment on how the exhibition reveals the work and labor involved in maintaining domestic life, especially as it becomes visible through digital platforms.`
+                type: "attention_economy",
+                template: `React in 8-12 words to how the exhibition reveals the architecture of attention in domestic spaces.`
             },
             {
-                type: "authenticity_simulation",
-                template: `Write about the relationship between authentic and simulated domesticity that you observe in the exhibition. Consider what feels real or artificial.`
-            },
-            {
-                type: "intimacy_distance",
-                template: `Reflect on the paradoxical experience of feeling both close to and distant from the domestic spaces presented in the exhibition.`
-            },
-            {
-                type: "technological_mediation",
-                template: `Comment on the role of technology in the exhibition and how it reveals the technological mediation of contemporary domestic experience.`
-            },
-            {
-                type: "immediate_response",
-                template: `Write an immediate, gut reaction to what you're experiencing. Focus on your first impressions and instinctive responses to the work.`
-            },
-            {
-                type: "comparative_observation",
-                template: `The exhibition reminds you of other art, media, or cultural phenomena. Comment on these connections without extensive analysis.`
-            },
-            {
-                type: "emotional_recognition",
-                template: `The exhibition has triggered a personal recognition or emotional response. Write about this feeling without being overly analytical.`
-            },
-            {
-                type: "technical_fascination",
-                template: `Comment on your curiosity about how the exhibition works technically - the green screen, the construction, the digital systems.`
-            },
-            {
-                type: "cultural_resonance",
-                template: `The exhibition connects to broader concerns about contemporary society, technology, or culture. Comment on these connections concisely.`
+                type: "authentic_artificial",
+                template: `Comment in 8-12 words on what feels authentic versus artificial in these domestic presentations.`
             }
         ];
 
@@ -702,7 +725,6 @@
                 adminPanel.style.display = 'block';
                 loadComments();
                 
-                // Load saved API key
                 const savedApiKey = localStorage.getItem('openaiApiKey');
                 if (savedApiKey) {
                     openaiApiKey.value = savedApiKey;
@@ -719,7 +741,7 @@
             document.getElementById('loginForm').reset();
         });
 
-        // Load comments with filtering capability
+        // Load comments
         function loadComments(filter = 'all') {
             db.collection('comments')
                 .orderBy('timestamp', 'desc')
@@ -730,7 +752,6 @@
                         return;
                     }
                     
-                    // Store all comments
                     allComments = [];
                     snapshot.forEach(doc => {
                         allComments.push({
@@ -739,7 +760,6 @@
                         });
                     });
                     
-                    // Apply filter and render
                     renderComments(filter);
                     updateStats();
                     
@@ -755,7 +775,7 @@
                 });
         }
 
-        // Render comments based on filter
+        // Render comments
         function renderComments(filter) {
             let filteredComments = allComments;
             
@@ -777,6 +797,8 @@
                 const formattedTime = formatTime(timestamp);
                 const commentClass = comment.isAi ? 'ai-comment-item' : 'human-comment-item';
                 
+                const wordCount = (comment.text || comment.content).split(' ').length;
+                
                 html += `
                     <div class="comment-item ${comment.status === 'pending' ? 'pending' : ''} ${commentClass}">
                         <div class="comment-header">
@@ -784,8 +806,8 @@
                             <div class="comment-time">${formattedTime}</div>
                         </div>
                         <div class="comment-content">${comment.text || comment.content}</div>
-                        ${comment.isAi && comment.promptType ? `<div class="comment-meta">AI Generated • Type: ${comment.promptType.replace(/_/g, ' ')} • Persona: ${comment.visitorPersona || 'unknown'}</div>` : ''}
-                        ${!comment.isAi ? '<div class="comment-meta">Human Generated</div>' : ''}
+                        ${comment.isAi && comment.promptType ? `<div class="comment-meta">AI Generated (${wordCount} words) • Type: ${comment.promptType.replace(/_/g, ' ')} • Persona: ${comment.visitorPersona || 'unknown'}</div>` : ''}
+                        ${!comment.isAi ? `<div class="comment-meta">Human Generated (${wordCount} words)</div>` : ''}
                         <div class="comment-actions">
                             ${comment.status === 'pending' ? `<button class="approve-btn" data-id="${comment.id}">APPROVE</button>` : ''}
                             <button class="delete-btn" data-id="${comment.id}">DELETE</button>
@@ -796,7 +818,6 @@
             
             commentList.innerHTML = html;
             
-            // Add event listeners to buttons
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     deleteComment(this.dataset.id);
@@ -820,20 +841,32 @@
                 return;
             }
             
-            // Count prompt types
             const promptStats = {};
             const personaStats = {};
+            const wordCounts = [];
+            
             aiComments.forEach(comment => {
                 const type = comment.promptType || 'unknown';
                 const persona = comment.visitorPersona || 'unknown';
+                const wordCount = (comment.text || '').split(' ').length;
+                
                 promptStats[type] = (promptStats[type] || 0) + 1;
                 personaStats[persona] = (personaStats[persona] || 0) + 1;
+                wordCounts.push(wordCount);
             });
             
-            // Generate analysis HTML
+            const avgLength = (wordCounts.reduce((a, b) => a + b, 0) / wordCounts.length).toFixed(1);
+            const minLength = Math.min(...wordCounts);
+            const maxLength = Math.max(...wordCounts);
+            const targetRangeComments = wordCounts.filter(count => count >= 8 && count <= 15).length;
+            const targetPercentage = ((targetRangeComments / wordCounts.length) * 100).toFixed(1);
+            
             let analysisHTML = `
-                <h3>Fixed AI Comments Analysis</h3>
+                <h3>Shorter AI Comments Analysis</h3>
                 <p><strong>Total AI Comments:</strong> ${aiComments.length}</p>
+                <p><strong>Average Length:</strong> ${avgLength} words (Target: 8-15 words)</p>
+                <p><strong>Length Range:</strong> ${minLength}-${maxLength} words</p>
+                <p><strong>Within Target Range:</strong> ${targetRangeComments}/${aiComments.length} (${targetPercentage}%)</p>
                 <p><strong>Different Prompt Types Used:</strong> ${Object.keys(promptStats).length}</p>
                 <p><strong>Different Personas Used:</strong> ${Object.keys(personaStats).length}</p>
                 <div class="prompt-stats">
@@ -867,11 +900,11 @@
             
             analysisHTML += '</div>';
             
-            // Add recent AI comments preview
             const recentAI = aiComments.slice(0, 5);
-            analysisHTML += '<h4 style="margin-top: 15px; margin-bottom: 10px;">Recent Fixed AI Comments:</h4>';
+            analysisHTML += '<h4 style="margin-top: 15px; margin-bottom: 10px;">Recent Short AI Comments:</h4>';
             recentAI.forEach((comment, index) => {
-                analysisHTML += `<div style="margin-bottom: 8px; font-size: 13px;"><strong>${index + 1}.</strong> [${comment.promptType}|${comment.visitorPersona}] ${comment.text}</div>`;
+                const wordCount = (comment.text || '').split(' ').length;
+                analysisHTML += `<div style="margin-bottom: 8px; font-size: 13px;"><strong>${index + 1}.</strong> [${wordCount}w|${comment.promptType}|${comment.visitorPersona}] ${comment.text}</div>`;
             });
             
             aiAnalysis.innerHTML = analysisHTML;
@@ -960,33 +993,14 @@
             return timestamp.toLocaleDateString();
         }
 
-        // Load stats (compatibility function)
-        function loadStats() {
-            loadComments(currentFilter);
-        }
-
-        // Function to ensure sentence completeness
+        // Ensure sentence completeness
         function ensureCompleteSentence(text) {
-            // Remove incomplete trailing phrases
             const problematicEndings = [
-                /,\s*and$/i,
-                /,\s*but$/i,
-                /,\s*yet$/i,
-                /,\s*as$/i,
-                /,\s*which$/i,
-                /,\s*that$/i,
-                /,\s*while$/i,
-                /,\s*where$/i,
-                /\s+to$/i,
-                /\s+in$/i,
-                /\s+of$/i,
-                /\s+for$/i,
-                /\s+with$/i,
-                /\s+by$/i,
-                /\s+from$/i
+                /,\s*and$/i, /,\s*but$/i, /,\s*yet$/i, /,\s*as$/i, /,\s*which$/i, /,\s*that$/i,
+                /,\s*while$/i, /,\s*where$/i, /\s+to$/i, /\s+in$/i, /\s+of$/i, /\s+for$/i,
+                /\s+with$/i, /\s+by$/i, /\s+from$/i
             ];
             
-            // Check for problematic endings and truncate if found
             for (let pattern of problematicEndings) {
                 if (pattern.test(text)) {
                     text = text.replace(pattern, '');
@@ -994,7 +1008,6 @@
                 }
             }
             
-            // Ensure it ends with proper punctuation
             if (!/[.!?]$/.test(text.trim())) {
                 text = text.trim() + '.';
             }
@@ -1002,11 +1015,10 @@
             return text.trim();
         }
 
-        // FIXED AI comment generation - no self-identification, complete sentences
+        // Generate AI comment - SHORTER VERSION
         async function generateAiComment(apiKey) {
             localStorage.setItem('openaiApiKey', apiKey);
             
-            // Ensure prompt diversity
             if (usedPrompts.length >= promptTemplates.length) {
                 usedPrompts = [];
             }
@@ -1019,14 +1031,12 @@
                 usedPrompts.shift();
             }
             
-            // Multi-layer randomness selection
             const reactionContext = realVisitorReactions[Math.floor(Math.random() * realVisitorReactions.length)];
             const selectedPersona = visitorPersonas[Math.floor(Math.random() * visitorPersonas.length)];
             const timeContext = timeContexts[Math.floor(Math.random() * timeContexts.length)];
             
-            // Adjusted AI parameters for complete sentences
-            const dynamicTemperature = 0.75 + (Math.random() * 0.25); // 0.75-1.0 (more controlled)
-            const dynamicMaxTokens = 80 + Math.floor(Math.random() * 20); // 80-100 (longer for completeness)
+            const dynamicTemperature = 0.8 + (Math.random() * 0.2);
+            const dynamicMaxTokens = 35 + Math.floor(Math.random() * 15);
             
             const enhancedPrompt = `
 You are experiencing "You're Live to the World" at the Royal College of Art - a contemporary art exhibition examining digital domesticity, surveillance culture, and the transformation of private space into public performance.
@@ -1044,16 +1054,16 @@ Context: This is during a ${timeContext.replace(/_/g, ' ')}.
 ${selectedPrompt.template}
 
 CRITICAL REQUIREMENTS:
-- Write ONLY 1-2 complete sentences maximum
-- DO NOT identify yourself by profession, background, or role (no "As a student...", "As someone who...", etc.)
-- Let your perspective come through naturally in your language choice, not through self-identification
-- End with a complete thought - no hanging sentences
-- Be specific about what you observe in the exhibition
-- Use present tense and personal perspective ("I notice...", "This makes me think...", "The work...")
-- Avoid academic jargon and art-speak
-- Sound like a genuine visitor's immediate reaction
+- Write EXACTLY 8-12 words total - be extremely concise
+- DO NOT identify yourself by profession, background, or role 
+- Make ONE sharp observation or feeling
+- Must be a complete sentence with proper punctuation
+- Use present tense and immediate perspective
+- Be specific about what you observe
+- Sound like a genuine visitor's quick reaction
+- No academic jargon - use everyday language
 
-Your comment:`;
+Your brief comment (8-12 words):`;
 
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
@@ -1066,15 +1076,15 @@ Your comment:`;
                     messages: [
                         { 
                             role: "system", 
-                            content: `You are writing a brief visitor comment for a contemporary art exhibition. Write from the perspective of someone who ${selectedPersona.background}, but DO NOT explicitly state your background or role. Let your expertise level show through your language and observations naturally. Use a ${selectedPersona.language} approach. Be thoughtful and observant but avoid self-referential phrases like "As a..." or "Being someone who...". Focus on the work, not on yourself. Always complete your thoughts fully.`
+                            content: `You are writing extremely brief visitor comments (8-12 words) for a contemporary art exhibition. Write from the perspective of someone who ${selectedPersona.background}, but DO NOT state your background. Use a ${selectedPersona.language} approach but be very concise. Focus on immediate reactions, not analysis. Always complete your thoughts in 8-12 words maximum.`
                         },
                         { role: "user", content: enhancedPrompt }
                     ],
                     temperature: dynamicTemperature,
                     max_tokens: dynamicMaxTokens,
-                    presence_penalty: 0.2,
-                    frequency_penalty: 0.2,
-                    stop: null // Allow natural completion
+                    presence_penalty: 0.3,
+                    frequency_penalty: 0.3,
+                    stop: ["\n", "\n\n"]
                 })
             });
             
@@ -1085,16 +1095,21 @@ Your comment:`;
             }
             
             let generatedText = data.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
-            
-            // Post-processing to ensure completeness
             generatedText = ensureCompleteSentence(generatedText);
+            
+            const words = generatedText.split(' ');
+            if (words.length > 15) {
+                generatedText = words.slice(0, 12).join(' ');
+                generatedText = ensureCompleteSentence(generatedText);
+            }
             
             return {
                 text: generatedText,
                 promptType: selectedPrompt.type,
                 visitorPersona: selectedPersona.type,
                 timeContext: timeContext,
-                reactionContext: reactionContext
+                reactionContext: reactionContext,
+                wordCount: generatedText.split(' ').length
             };
         }
 
@@ -1114,7 +1129,7 @@ Your comment:`;
                 const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                 
                 aiPreview.innerHTML = `
-                    <strong>Fixed Preview:</strong><br>
+                    <strong>Short Preview (${result.wordCount} words):</strong><br>
                     <strong>Type:</strong> ${result.promptType.replace(/_/g, ' ')}<br>
                     <strong>Persona:</strong> ${result.visitorPersona.replace(/_/g, ' ')}<br>
                     <strong>Context:</strong> ${result.timeContext.replace(/_/g, ' ')}<br>
@@ -1123,7 +1138,7 @@ Your comment:`;
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
             } finally {
-                generatePreview.textContent = 'Generate Preview';
+                generatePreview.textContent = 'Generate Short Preview';
                 generatePreview.disabled = false;
             }
         });
@@ -1139,13 +1154,12 @@ Your comment:`;
             generateBatch.disabled = true;
             
             try {
-                aiPreview.innerHTML = '<strong>Generating 5 fixed comments...</strong><br><br>';
+                aiPreview.innerHTML = '<strong>Generating 5 short comments...</strong><br><br>';
                 
                 for (let i = 0; i < 5; i++) {
                     const result = await generateAiComment(apiKey);
                     const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                     
-                    // Add to database
                     await db.collection('comments').add({
                         name: randomName,
                         text: result.text,
@@ -1155,27 +1169,26 @@ Your comment:`;
                         promptType: result.promptType,
                         visitorPersona: result.visitorPersona,
                         timeContext: result.timeContext,
-                        reactionContext: result.reactionContext
+                        reactionContext: result.reactionContext,
+                        wordCount: result.wordCount
                     });
                     
-                    aiPreview.innerHTML += `${i + 1}. [${result.promptType.replace(/_/g, ' ')}|${result.visitorPersona.replace(/_/g, ' ')}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
+                    aiPreview.innerHTML += `${i + 1}. [${result.wordCount}w|${result.promptType.replace(/_/g, ' ')}|${result.visitorPersona.replace(/_/g, ' ')}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
                     
-                    // Delay between generations
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
                 
-                aiPreview.innerHTML += '<em>All fixed comments added successfully!</em>';
+                aiPreview.innerHTML += '<em>All short comments added successfully!</em>';
                 loadComments(currentFilter);
                 
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
             } finally {
-                generateBatch.textContent = 'Generate 5 Comments';
+                generateBatch.textContent = 'Generate 5 Short Comments';
                 generateBatch.disabled = false;
             }
         });
 
-        // Test diversity
         testDiversity.addEventListener('click', async function() {
             const apiKey = openaiApiKey.value.trim();
             if (!apiKey) {
@@ -1187,9 +1200,10 @@ Your comment:`;
             testDiversity.disabled = true;
             
             try {
-                aiPreview.innerHTML = '<strong>Testing fixed diversity with 10 samples:</strong><br><br>';
+                aiPreview.innerHTML = '<strong>Testing short diversity with 10 samples:</strong><br><br>';
                 const usedTypes = new Set();
                 const usedPersonas = new Set();
+                const wordCounts = [];
                 
                 for (let i = 0; i < 10; i++) {
                     const result = await generateAiComment(apiKey);
@@ -1197,22 +1211,26 @@ Your comment:`;
                     
                     usedTypes.add(result.promptType);
                     usedPersonas.add(result.visitorPersona);
-                    aiPreview.innerHTML += `${i + 1}. [${result.promptType.replace(/_/g, ' ')}|${result.visitorPersona.replace(/_/g, ' ')}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
+                    wordCounts.push(result.wordCount);
+                    
+                    aiPreview.innerHTML += `${i + 1}. [${result.wordCount}w|${result.promptType.replace(/_/g, ' ')}|${result.visitorPersona.replace(/_/g, ' ')}] <strong>${randomName}:</strong> ${result.text}<br><br>`;
                     
                     await new Promise(resolve => setTimeout(resolve, 1200));
                 }
                 
-                aiPreview.innerHTML += `<em>Used ${usedTypes.size} different prompt types and ${usedPersonas.size} different personas. All sentences complete!</em>`;
+                const avgWords = (wordCounts.reduce((a, b) => a + b, 0) / wordCounts.length).toFixed(1);
+                const inRange = wordCounts.filter(count => count >= 8 && count <= 15).length;
+                
+                aiPreview.innerHTML += `<em>Used ${usedTypes.size} different prompt types and ${usedPersonas.size} different personas.<br>Average length: ${avgWords} words. ${inRange}/10 comments within 8-15 word target range.</em>`;
                 
             } catch (error) {
                 aiPreview.textContent = `Error: ${error.message}`;
             } finally {
-                testDiversity.textContent = 'Test Diversity (10 samples)';
+                testDiversity.textContent = 'Test Short Diversity (10 samples)';
                 testDiversity.disabled = false;
             }
         });
 
-        // Auto-generation with randomized timing
         enableAiComments.addEventListener('click', function() {
             const apiKey = openaiApiKey.value.trim();
             if (!apiKey) {
@@ -1221,53 +1239,42 @@ Your comment:`;
             }
             
             if (aiInterval) {
-                // Disable AI comments
                 clearTimeout(aiInterval);
                 aiInterval = null;
                 enableAiComments.textContent = 'Enable Auto Generation';
                 enableAiComments.style.background = '#4CAF50';
                 aiPreview.innerHTML = 'Auto-generation disabled.';
             } else {
-                // Enable AI comments with randomized timing
                 enableAiComments.textContent = 'Disable Auto Generation';
                 enableAiComments.style.background = '#f44336';
-                aiPreview.innerHTML = 'Fixed auto-generation enabled! Comments will be generated every 15-25 minutes with no self-identification and complete sentences.';
+                aiPreview.innerHTML = 'Short auto-generation enabled! Comments will be generated every 15-25 minutes with 8-12 words each.';
                 
-                // Generate first comment immediately
                 generateAndPostAiComment();
-                
-                // Schedule next comment with random interval
                 scheduleNextComment();
             }
         });
 
-        // Schedule next comment with randomized timing
         function scheduleNextComment() {
-            // Random interval between 15-25 minutes (900000-1500000 ms)
-            const minInterval = 15 * 60 * 1000; // 15 minutes
-            const maxInterval = 25 * 60 * 1000; // 25 minutes
+            const minInterval = 15 * 60 * 1000;
+            const maxInterval = 25 * 60 * 1000;
             const randomInterval = minInterval + Math.random() * (maxInterval - minInterval);
             
             aiInterval = setTimeout(() => {
                 generateAndPostAiComment();
-                scheduleNextComment(); // Schedule the next one
+                scheduleNextComment();
             }, randomInterval);
             
             const nextInMinutes = Math.round(randomInterval / 60000);
-            console.log(`Next AI comment scheduled in ${nextInMinutes} minutes`);
+            console.log(`Next short AI comment scheduled in ${nextInMinutes} minutes`);
         }
 
-        // Generate and post AI comment automatically
         async function generateAndPostAiComment() {
             const apiKey = openaiApiKey.value.trim();
             
             try {
                 const result = await generateAiComment(apiKey);
-                
-                // Random visitor name
                 const randomName = visitorNames[Math.floor(Math.random() * visitorNames.length)];
                 
-                // Add to database with enhanced metadata
                 await db.collection('comments').add({
                     name: randomName,
                     text: result.text,
@@ -1277,12 +1284,12 @@ Your comment:`;
                     promptType: result.promptType,
                     visitorPersona: result.visitorPersona,
                     timeContext: result.timeContext,
-                    reactionContext: result.reactionContext
+                    reactionContext: result.reactionContext,
+                    wordCount: result.wordCount
                 });
                 
-                console.log(`Auto-generated fixed comment (${result.promptType}|${result.visitorPersona}):`, result.text);
+                console.log(`Auto-generated short comment (${result.wordCount}w|${result.promptType}|${result.visitorPersona}):`, result.text);
                 
-                // Reload comments if currently viewing
                 if (currentFilter !== 'human') {
                     loadComments(currentFilter);
                 }
@@ -1292,7 +1299,6 @@ Your comment:`;
             }
         }
 
-        // Auto-save API key
         openaiApiKey.addEventListener('change', function() {
             localStorage.setItem('openaiApiKey', this.value);
         });
