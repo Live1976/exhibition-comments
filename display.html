@@ -388,14 +388,11 @@
             }
         }
         
-        // Auto-scroll settings - 修复的自动滚动系统
+        // Auto-scroll settings - 修复版本
         let autoScroll = true;
         let scrollSpeed = 1;
-        let scrollAnimationId = null;
+        let scrollInterval;
         let lastScrollTime = Date.now();
-        let scrollDirection = 1; // 1 for down, -1 for up
-        let pauseDuration = 2000; // 2 seconds pause at top/bottom
-        let lastDirectionChange = 0;
         
         // Format time
         function formatTime(timestamp) {
@@ -497,7 +494,7 @@
             }
             
             try {
-                // 使用实时监听
+                // 修复索引问题：先订阅所有评论，然后在客户端过滤
                 unsubscribe = db.collection('comments')
                     .orderBy('timestamp', 'desc')
                     .onSnapshot(snapshot => {
@@ -563,7 +560,6 @@
             logDebug('Loading comments directly...');
             
             db.collection('comments')
-                .where('status', '==', 'approved')
                 .orderBy('timestamp', 'desc')
                 .get()
                 .then(snapshot => {
@@ -577,10 +573,14 @@
                     
                     const comments = [];
                     snapshot.forEach(doc => {
-                        comments.push({
-                            ...doc.data(),
-                            id: doc.id
-                        });
+                        const data = doc.data();
+                        // 只包含已批准的评论
+                        if (data.status === 'approved') {
+                            comments.push({
+                                ...data,
+                                id: doc.id
+                            });
+                        }
                     });
                     
                     logDebug(`Loaded ${comments.length} comments directly.`);
@@ -614,16 +614,18 @@
                 logDebug('Polling for new comments...');
                 
                 db.collection('comments')
-                    .where('status', '==', 'approved')
                     .orderBy('timestamp', 'desc')
                     .get()
                     .then(snapshot => {
                         const comments = [];
                         snapshot.forEach(doc => {
-                            comments.push({
-                                ...doc.data(),
-                                id: doc.id
-                            });
+                            const data = doc.data();
+                            if (data.status === 'approved') {
+                                comments.push({
+                                    ...data,
+                                    id: doc.id
+                                });
+                            }
                         });
                         
                         logDebug(`Polled ${comments.length} comments.`);
@@ -660,51 +662,37 @@
             }
         }
         
-        // 修复的自动滚动功能
-        function performAutoScroll() {
-            if (!autoScroll || !scrollAnimationId) return;
-            
-            // 检查用户是否最近有交互
-            if (Date.now() - lastScrollTime < 3000) {
-                // 用户最近有交互，暂停滚动
-                scrollAnimationId = requestAnimationFrame(performAutoScroll);
-                return;
-            }
-            
-            const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-            const currentScroll = window.pageYOffset;
-            
-            // 如果在顶部或底部暂停
-            const now = Date.now();
-            if ((currentScroll <= 0 && scrollDirection === -1) || 
-                (currentScroll >= maxScroll && scrollDirection === 1)) {
-                
-                if (now - lastDirectionChange > pauseDuration) {
-                    scrollDirection *= -1; // 改变方向
-                    lastDirectionChange = now;
-                    logDebug(`Changed scroll direction to ${scrollDirection === 1 ? 'down' : 'up'}`);
-                }
-            } else {
-                // 正常滚动
-                const scrollAmount = scrollSpeed * scrollDirection;
-                window.scrollBy(0, scrollAmount);
-            }
-            
-            scrollAnimationId = requestAnimationFrame(performAutoScroll);
-        }
-        
+        // 自动滚动功能 - 修复版本
         function startAutoScroll() {
-            if (!scrollAnimationId && autoScroll) {
-                logDebug('Starting auto scroll');
-                scrollAnimationId = requestAnimationFrame(performAutoScroll);
+            if (!autoScroll) return;
+            
+            // 清除现有滚动间隔
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
             }
+            
+            scrollInterval = setInterval(() => {
+                // 如果用户最近互动过，暂停自动滚动
+                if (Date.now() - lastScrollTime > 3000) {
+                    window.scrollBy(0, scrollSpeed);
+                    
+                    // 到达底部时回到顶部
+                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                        setTimeout(() => {
+                            window.scrollTo({
+                                top: 0,
+                                behavior: 'smooth'
+                            });
+                        }, 3000);
+                    }
+                }
+            }, 30); // 更频繁的滚动间隔，更平滑的滚动
         }
         
         function stopAutoScroll() {
-            if (scrollAnimationId) {
-                logDebug('Stopping auto scroll');
-                cancelAnimationFrame(scrollAnimationId);
-                scrollAnimationId = null;
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
             }
         }
         
@@ -716,12 +704,10 @@
                 indicator.textContent = 'AUTO SCROLL: ON';
                 indicator.classList.remove('paused');
                 startAutoScroll();
-                logDebug('Auto scroll enabled');
             } else {
                 indicator.textContent = 'AUTO SCROLL: OFF';
                 indicator.classList.add('paused');
                 stopAutoScroll();
-                logDebug('Auto scroll disabled');
             }
             
             // Save preference to localStorage
@@ -731,16 +717,29 @@
         // 事件处理程序，用于手动滚动
         let touchTimeout;
         
-        function handleUserInteraction() {
+        document.addEventListener('touchstart', () => {
             lastScrollTime = Date.now();
-            logDebug('User interaction detected');
-        }
+            
+            if (autoScroll) {
+                stopAutoScroll();
+                clearTimeout(touchTimeout);
+                
+                // 5秒无交互后恢复自动滚动
+                touchTimeout = setTimeout(() => {
+                    if (autoScroll) {
+                        startAutoScroll();
+                    }
+                }, 5000);
+            }
+        });
         
-        document.addEventListener('touchstart', handleUserInteraction);
-        document.addEventListener('wheel', handleUserInteraction);
-        document.addEventListener('scroll', handleUserInteraction);
-        document.addEventListener('mousedown', handleUserInteraction);
-        document.addEventListener('keydown', handleUserInteraction);
+        document.addEventListener('wheel', () => {
+            lastScrollTime = Date.now();
+        });
+        
+        document.addEventListener('scroll', () => {
+            lastScrollTime = Date.now();
+        });
         
         // 点击按钮切换自动滚动
         document.getElementById('scrollIndicator').addEventListener('click', toggleAutoScroll);
@@ -811,12 +810,12 @@
             // 加载设置
             loadSettings();
             
-            // 如果启用，启动自动滚动（延迟2秒让内容加载）
-            setTimeout(() => {
-                if (autoScroll) {
+            // 如果启用，启动自动滚动
+            if (autoScroll) {
+                setTimeout(() => {
                     startAutoScroll();
-                }
-            }, 2000);
+                }, 3000); // 延迟3秒让内容加载
+            }
             
             // 监控设置变化
             try {
