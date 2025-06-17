@@ -336,7 +336,7 @@
         function logDebug(message) {
             if (debugMode) {
                 const debugPanel = document.getElementById('debugPanel');
-                debugPanel.innerHTML += message + '<br>';
+                debugPanel.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
                 debugPanel.scrollTop = debugPanel.scrollHeight;
             }
             console.log(message);
@@ -388,7 +388,7 @@
             }
         }
         
-        // Auto-scroll settings - 修复版本
+        // 🔥 修复的自动滚动系统 - 保留原有复杂度但确保工作
         let autoScroll = true;
         let scrollSpeed = 1;
         let scrollInterval;
@@ -494,7 +494,7 @@
             }
             
             try {
-                // 修复索引问题：先订阅所有评论，然后在客户端过滤
+                // 使用实时监听
                 unsubscribe = db.collection('comments')
                     .orderBy('timestamp', 'desc')
                     .onSnapshot(snapshot => {
@@ -662,7 +662,7 @@
             }
         }
         
-        // 自动滚动功能 - 修复版本
+        // 🔥 修复版自动滚动功能 - 简单而有效
         function startAutoScroll() {
             if (!autoScroll) return;
             
@@ -671,19 +671,32 @@
                 clearInterval(scrollInterval);
             }
             
+            logDebug('🚀 Starting auto-scroll with setInterval');
+            
             scrollInterval = setInterval(() => {
                 // 如果用户最近互动过，暂停自动滚动
                 if (Date.now() - lastScrollTime > 3000) {
-                    window.scrollBy(0, scrollSpeed);
+                    const currentScroll = window.pageYOffset;
+                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
                     
-                    // 到达底部时回到顶部
-                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-                        setTimeout(() => {
-                            window.scrollTo({
-                                top: 0,
-                                behavior: 'smooth'
-                            });
-                        }, 3000);
+                    if (maxScroll > 0) {
+                        window.scrollBy(0, scrollSpeed);
+                        
+                        // 到达底部时回到顶部
+                        if (currentScroll >= maxScroll - 10) {
+                            logDebug('📍 Reached bottom, scrolling to top');
+                            setTimeout(() => {
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'
+                                });
+                            }, 3000);
+                        }
+                        
+                        // 每100次循环记录一次状态
+                        if (Math.random() < 0.01) {
+                            logDebug(`📜 Auto-scrolling: ${currentScroll}/${maxScroll}`);
+                        }
                     }
                 }
             }, 30); // 更频繁的滚动间隔，更平滑的滚动
@@ -693,6 +706,7 @@
             if (scrollInterval) {
                 clearInterval(scrollInterval);
                 scrollInterval = null;
+                logDebug('⏹️ Stopped auto-scroll');
             }
         }
         
@@ -704,10 +718,12 @@
                 indicator.textContent = 'AUTO SCROLL: ON';
                 indicator.classList.remove('paused');
                 startAutoScroll();
+                logDebug('✅ Auto-scroll enabled');
             } else {
                 indicator.textContent = 'AUTO SCROLL: OFF';
                 indicator.classList.add('paused');
                 stopAutoScroll();
+                logDebug('❌ Auto-scroll disabled');
             }
             
             // Save preference to localStorage
@@ -719,6 +735,7 @@
         
         document.addEventListener('touchstart', () => {
             lastScrollTime = Date.now();
+            logDebug('👆 Touch detected');
             
             if (autoScroll) {
                 stopAutoScroll();
@@ -728,6 +745,7 @@
                 touchTimeout = setTimeout(() => {
                     if (autoScroll) {
                         startAutoScroll();
+                        logDebug('🔄 Resuming auto-scroll after touch');
                     }
                 }, 5000);
             }
@@ -811,11 +829,14 @@
             loadSettings();
             
             // 如果启用，启动自动滚动
-            if (autoScroll) {
-                setTimeout(() => {
+            setTimeout(() => {
+                if (autoScroll) {
+                    logDebug('⏰ Starting delayed auto-scroll...');
                     startAutoScroll();
-                }, 3000); // 延迟3秒让内容加载
-            }
+                } else {
+                    logDebug('❌ Auto-scroll disabled');
+                }
+            }, 3000); // 延迟3秒让内容加载
             
             // 监控设置变化
             try {
@@ -852,11 +873,13 @@
             if (document.hidden) {
                 // 页面隐藏
                 stopAutoScroll();
+                logDebug('📱 Page hidden, stopping auto-scroll');
             } else {
                 // 页面再次可见
                 if (autoScroll) {
                     setTimeout(() => {
                         startAutoScroll();
+                        logDebug('📱 Page visible, resuming auto-scroll');
                     }, 1000);
                 }
                 
@@ -882,7 +905,6 @@
         // 为调试添加测试评论功能
         window.addTestComment = function() {
             logDebug('Adding test comment');
-            
             const testComment = {
                 name: "Test User",
                 text: "This is a test comment added at " + new Date().toLocaleTimeString(),
@@ -898,6 +920,79 @@
                     logDebug(`Error adding test comment: ${error.message}`);
                 });
         };
+
+        // 🧪 调试功能
+        window.testScroll = function() {
+            logDebug('🧪 Manual scroll test - scrolling 200px');
+            window.scrollBy(0, 200);
+        };
+
+        window.forceScrollTest = function() {
+            logDebug('🔥 Force scroll test starting...');
+            window.scrollTo(0, 500);
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                logDebug('✅ Force scroll test completed');
+            }, 2000);
+        };
+
+        window.debugAutoScroll = function() {
+            logDebug('=== AUTO SCROLL DEBUG INFO ===');
+            logDebug('autoScroll enabled: ' + autoScroll);
+            logDebug('scrollInterval ID: ' + scrollInterval);
+            logDebug('current scroll: ' + window.pageYOffset);
+            logDebug('max scroll: ' + (document.documentElement.scrollHeight - window.innerHeight));
+            logDebug('last user interaction: ' + (Date.now() - lastScrollTime) + 'ms ago');
+            logDebug('page height: ' + document.documentElement.scrollHeight);
+            logDebug('window height: ' + window.innerHeight);
+            logDebug('===============================');
+        };
+
+        // 🚀 强制测试自动滚动 - 10秒后执行
+        setTimeout(() => {
+            logDebug('🔥 EXECUTING FORCE AUTO-SCROLL TEST');
+            
+            // 先测试手动滚动
+            window.scrollBy(0, 100);
+            logDebug('📜 Manual scroll test: +100px');
+            
+            setTimeout(() => {
+                window.scrollBy(0, -50);
+                logDebug('📜 Manual scroll test: -50px');
+                
+                // 然后启动自动滚动
+                if (autoScroll && !scrollInterval) {
+                    logDebug('🚀 Force starting auto-scroll...');
+                    startAutoScroll();
+                }
+            }, 1000);
+        }, 10000);
+
+        // 🎯 额外的滚动测试 - 15秒后执行
+        setTimeout(() => {
+            logDebug('🎯 FINAL SCROLL VERIFICATION');
+            
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            logDebug(`📏 Page scrollable height: ${maxScroll}px`);
+            
+            if (maxScroll > 100) {
+                logDebug('✅ Page has enough content to scroll');
+                
+                if (autoScroll) {
+                    if (scrollInterval) {
+                        logDebug('✅ Auto-scroll interval is running');
+                    } else {
+                        logDebug('❌ Auto-scroll should be running but interval is null');
+                        logDebug('🔄 Attempting to restart auto-scroll...');
+                        startAutoScroll();
+                    }
+                } else {
+                    logDebug('ℹ️ Auto-scroll is disabled by user');
+                }
+            } else {
+                logDebug('⚠️ Page content too short for scrolling');
+            }
+        }, 15000);
     </script>
 </body>
 </html>
